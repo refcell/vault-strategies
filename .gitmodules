@@ -6,4 +6,4 @@
 	url = https://github.com/Rari-Capital/solmate
 [submodule "lib/vaults"]
 	path = lib/vaults
-	url = https://github.com/rari-capital/vaults
+	url = https://github.com/Rari-Capital/vaults
