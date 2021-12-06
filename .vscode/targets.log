@@ -6,8 +6,9 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
+ 
 
-# Make data base, printed on Sun Dec  5 22:15:43 2021
+# Make data base, printed on Mon Dec  6 11:37:09 2021
 
 # Variables
 
@@ -19,8 +20,6 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 ELECTRON_NO_ATTACH_CONSOLE = 1
 # environment
 VSCODE_LOG_NATIVE = false
-# environment
-WALLET_PUBLIC_KEY = 0xf25e32C0f2928F198912A4F21008aF146Af8A05a
 # environment
 NVM_INC = /Users/andreasbigger/.nvm/versions/node/v16.8.0/include/node
 # automatic
@@ -37,38 +36,30 @@ SHELL = /bin/sh
 VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
 # environment
 _ = /usr/bin/make
-# environment
-CHAIN_ID = 5
-# environment
-YOBOT_ERC721_LIMIT_ORDER_CONTRACT_ADDRESS = 0x0D29790C2412f42248905F879260F1A6f409a11a
 # makefile (from `Makefile', line 1)
 MAKEFILE_LIST :=  Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-INFURA_GOERLI_PROJECT_ID = a379f26bb1564ad491f5cc1bdac3a126
-# environment
 __CFBundleIdentifier = com.microsoft.VSCode
 # environment
-BLOCKNATIVE_API_KEY = 3a596a64-ff39-4102-b090-ce7879de7ea1
+ETHERSCAN_API_KEY = JYK3UGMJ17TT5IQTD9CQX3C5FZWXI8NWGK
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/kn/4p9f93354419mn8j_y7b955m0000gn/T/vscode-ipc-e4d7baf1-f5ed-4089-9362-9207c29dc839.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/kn/4p9f93354419mn8j_y7b955m0000gn/T/vscode-ipc-6a04e3fd-83d1-487c-8bb6-d8e92f98c8b0.sock
 # environment
 VSCODE_CWD = /Users/andreasbigger/projects/vault-strategies
 # environment
 PATH = /usr/local/opt/openssl@3/bin:/Users/andreasbigger/.nvm/versions/node/v16.8.0/bin:/Users/andreasbigger/.local/share/solana/install/active_release/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Applications/Postgres.app/Contents/Versions/latest/bin:/Users/andreasbigger/.nix-profile/bin:/Users/andreasbigger/.cargo/bin
 # environment
-ALCHEMY_MAINNET_PROJECT_ID = GTdPFE68qgzYpKiTtenx_63jjfQEuIwd
-# environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
-ALACRITTY_LOG = /var/folders/kn/4p9f93354419mn8j_y7b955m0000gn/T/Alacritty-10234.log
+ALCHEMY_API_KEY = faF6HExYXueoeSTR_elA69AUk7VApOPT
+# environment
+ALACRITTY_LOG = /var/folders/kn/4p9f93354419mn8j_y7b955m0000gn/T/Alacritty-620.log
 # environment
 NVM_BIN = /Users/andreasbigger/.nvm/versions/node/v16.8.0/bin
 # environment
-CONTRACT_ADMIN_ADDRESS = 0xf25e32C0f2928F198912A4F21008aF146Af8A05a
-# environment
-WALLET_PRIVATE_KEY = 85d6db0143b65a9e2f5a041fb347bf1cd9c1037f0d84de41922eca8daaf4ef5e
+LaunchInstanceID = 9CA93EE3-CCE3-4828-9AAD-4B13385258B8
 # environment
 VSCODE_LOG_STACK = false
 # environment
@@ -76,7 +67,9 @@ ELECTRON_RUN_AS_NODE = 1
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.SJgM7lEQEH/Listeners
+ETH_FROM = 0xf25e32C0f2928F198912A4F21008aF146Af8A05a
+# environment
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.CnnajxmN77/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
@@ -123,8 +116,6 @@ SHLVL = 3
 NIX_PATH = /Users/andreasbigger/.nix-defexpr/channels
 # environment
 NIX_PROFILES = /nix/var/nix/profiles/default /Users/andreasbigger/.nix-profile
-# environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.30929287.30929293.7078C217-2BE7-4571-9A8F-80879634B7F2
 # default
 MAKE_VERSION := 3.81
 # environment
@@ -148,23 +139,17 @@ VSCODE_IPC_HOOK = /Users/andreasbigger/Library/Application Support/Code/1.62.3-m
 # makefile
 MAKEFLAGS = Rrqp
 # environment
-ALCHEMY_GOERLI_PROJECT_ID = OjX30C78433UvrCNbl08OIaK3U9OP893
-# environment
 MFLAGS = -Rrqp
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
-SEARCHER_IDENTITY_PRIVATE_KEY = 85d6db0143b65a9e2f5a041fb347bf1cd9c1037f0d84de41922eca8daaf4ef5e
+NVM_DIR = /Users/andreasbigger/.nvm
 # environment
-INFURA_MAINNET_PROJECT_ID = a379f26bb1564ad491f5cc1bdac3a126
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.30929287.30929293.DB3760EF-13A4-41C6-A3B9-0D108C86DD12
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # automatic
 +F = $(notdir $+)
-# environment
-ERIGON_URI = ws://erigon.nascent.xyz:8545
-# environment
-TX_SIGNER_PRIVATE_KEY = 85d6db0143b65a9e2f5a041fb347bf1cd9c1037f0d84de41922eca8daaf4ef5e
 # environment
 __CF_USER_TEXT_ENCODING = 0x1F5:0:0
 # environment
@@ -177,10 +162,10 @@ MAKEFILES :=
 PAGER = less
 # environment
 LC_ALL = C
+# environment
+SECURITYSESSIONID = 186b6
 # automatic
 ^F = $(notdir $^)
-# environment
-NVM_DIR = /Users/andreasbigger/.nvm
 # default
 SUFFIXES := 
 # default
@@ -192,9 +177,11 @@ LANG = C
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 40334
+ETHSIGN_PRIVATE_KEY = 85d6db0143b65a9e2f5a041fb347bf1cd9c1037f0d84de41922eca8daaf4ef5e
+# environment
+VSCODE_PID = 572
 # variable set hash-table stats:
-# Load=91/1024=9%, Rehash=0, Collisions=3/117=3%
+# Load=84/1024=8%, Rehash=0, Collisions=1/110=1%
 
 # Pattern-specific Variable Values
 
@@ -202,9 +189,9 @@ VSCODE_PID = 40334
 
 # Directories
 
-# . (device 16777235, inode 31301911): 13 files, no impossibilities.
+# . (device 16777232, inode 31301911): 18 files, no impossibilities.
 
-# 13 files, no impossibilities in 1 directories.
+# 18 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -212,15 +199,52 @@ VSCODE_PID = 40334
 
 # Files
 
-all:
+all: solc install update
 #  Command-line target.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/2=0%
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2021-12-05 22:18:55
+#  File has been updated.
+#  Successfully updated.
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+
+update:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 7):
+	dapp update
+	
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+solc:
 #  Implicit rule search has not been done.
 #  Implicit/static pattern stem: `'
 #  File does not exist.
 #  File has been updated.
 #  Needs to be updated (-q is set).
 # automatic
-# @ := all
+# @ := solc
 # automatic
 # % := 
 # automatic
@@ -237,57 +261,20 @@ all:
 # ? := 
 # variable set hash-table stats:
 # Load=8/32=25%, Rehash=0, Collisions=1/10=10%
-#  commands to execute (from `Makefile', line 1):
-	dapp build
-	
-
-# Not a target:
-.SUFFIXES:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-# Not a target:
-Makefile:
-#  Implicit rule search has been done.
-#  Last modified 2021-12-05 22:11:23
-#  File has been updated.
-#  Successfully updated.
-# variable set hash-table stats:
-# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
-
-test:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
 #  commands to execute (from `Makefile', line 3):
-	dapp test
+	nix-env -f https://github.com/dapphub/dapptools/archive/master.tar.gz -iA solc-static-versions.solc_0_8_10
 	
 
-# Not a target:
-.DEFAULT:
+install:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-
-clean:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  commands to execute (from `Makefile', line 2):
-	dapp clean
-	
-
-deploy:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  commands to execute (from `Makefile', line 4):
-	dapp create RariStrategies
+#  commands to execute (from `Makefile', line 5):
+	npm install
 	
 
 # files hash-table stats:
-# Load=7/1024=1%, Rehash=0, Collisions=0/21=0%
+# Load=7/1024=1%, Rehash=0, Collisions=0/24=0%
 # VPATH Search Paths
 
 # No `vpath' search paths.
@@ -299,6 +286,6 @@ deploy:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Sun Dec  5 22:15:43 2021
+# Finished Make data base on Mon Dec  6 11:37:09 2021
 
  

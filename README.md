@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Tests](https://github.com/Rari-Capital/vaults/actions/workflows/tests.yml/badge.svg)](https://github.com/Rari-Capital/vaults/actions/workflows/tests.yml) [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE.md)
+[![Tests](https://github.com/abigger87/vault-strategies/actions/workflows/tests.yml/badge.svg)](https://github.com/abigger87/vault-strategies/actions/workflows/tests.yml) [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE.md)
 
 </div>
 
@@ -13,9 +13,15 @@
 -   [t11s](https://twitter.com/transmissions11), [Jet Jadeja](https://twitter.com/JetJadeja), and the whole [Rari Capital](https://twitter.com/raricapital) team for their exceptional work.
 -   [Georgios Konstantopoulos](https://github.com/gakonst) for the amazing [dapptools-template](https://github.com/gakonst/dapptools-template) resource.
 
-## Architecture
+## Strategies
 
 - [`IdleStrategy.sol`](src/IdleStrategy.sol): An Idle Strategy which generates no yield for a user's deposit.
+- [`UniswapLP.sol`](src/UniswapLP.sol): Provides liquidity into a pool with the underlying and highest fees/liquidity ratio.
+  - [Uniswap Deploys](https://github.com/Uniswap/v3-periphery/blob/main/deploys.md)
+- [`CompoundLender.sol`](src/CompoundLender.sol): Lends the underlying to compound.
+  - [Compound V2 Deploys](https://compound.finance/docs#networks)
+
+## 
 - [`interfaces/`](src/interfaces): Interfaces of external contracts Vaults and modules interact with.
   - [`Strategy.sol`](src/interfaces/Strategy.sol): Minimal interfaces for ERC20 and ETH compatible strategies.
 
@@ -63,13 +69,13 @@ Using our previously deployed vault as the underlying, deployed
 Deployed Strategy to Kovan running:
 
 ```sh
-ETH_FROM=xxxx ETH_RPC_URL=xxxx ETH_GAS=xxxx dapp create src/IdleStrategy.sol:IdleStrategy <ETH_FROM> 0x76b06a2f6df6f0514e7bec52a9afb3f603b477cd --verify
+dapp create src/IdleStrategy.sol:IdleStrategy <ETH_FROM> 0x76b06a2f6df6f0514e7bec52a9afb3f603b477cd --verify
 ```
 
 Then verified with:
 
 ```
-ETH_FROM=xxxx ETH_RPC_URL=xxxx ETH_GAS=xxxx dapp verify-contract ./src/IdleStrategy.sol:IdleStrategy <Deployed IdleStrategy Address> <ETH_FROM> 0x76b06a2f6df6f0514e7bec52a9afb3f603b477cd
+dapp verify-contract ./src/IdleStrategy.sol:IdleStrategy <Deployed IdleStrategy Address> <ETH_FROM> 0x76b06a2f6df6f0514e7bec52a9afb3f603b477cd
 ```
 
 
