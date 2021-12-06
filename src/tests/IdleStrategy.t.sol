@@ -3,13 +3,13 @@ pragma solidity ^0.8.6;
 
 import "ds-test/test.sol";
 
-import "./RariStrategies.sol";
+import "../IdleStrategy.sol";
 
-contract RariStrategiesTest is DSTest {
-    RariStrategies strategies;
+contract IdleStrategyTest is DSTest {
+    IdleStrategy idle;
 
     function setUp() public {
-        strategies = new RariStrategies();
+        idle = new IdleStrategy();
     }
 
     function testFail_basic_sanity() public {
