@@ -49,6 +49,10 @@ contract UniswapLP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20Stra
         return balanceOf[user].fmul(exchangeRate(), BASE_UNIT);
     }
 
+
+    // TODO: increaseLiquidity into UniswapV2Router02 at 0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+    // TODO: dai/rai 3% tick
+  
     /*///////////////////////////////////////////////////////////////
                             INTERNAL LOGIC
     //////////////////////////////////////////////////////////////*/

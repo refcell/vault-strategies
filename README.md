@@ -63,8 +63,16 @@ Underlying Token [RAI](https://kovan.etherscan.io/token/0x76b06a2f6df6f0514e7bec
 
 Deployed [Vault](https://kovan.etherscan.io/address/0x58a4cc1f3c268af914c7f23fb1c7510c3033cbca) ad `0x58a4cc1f3c268af914c7f23fb1c7510c3033cbca`
 
+
+#### Deployed Rai Vault
+
 Using our previously deployed vault as the underlying, deployed
 [Vault](https://kovan.etherscan.io/address/0xf4e6b1e4f4605c9a43bfa67ba30045ff2a6966a8) at `0xf4e6b1e4f4605c9a43bfa67ba30045ff2a6966a8`
+
+
+Uniswap Liquidity [pool](https://app.uniswap.org/#/pool/8849)
+
+
 
 Deployed Strategy to Kovan running:
 
