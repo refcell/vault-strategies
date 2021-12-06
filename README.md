@@ -49,6 +49,30 @@ dapp test --coverage
 dapp snapshot
 ```
 
+### Kovan
+
+Rari Capital [VaultFactory](https://kovan.etherscan.io/address/0xc99a698dfB1eB38E0649e6d2d3462Bc2476dE0B4) at `0xc99a698dfB1eB38E0649e6d2d3462Bc2476dE0B4`
+
+Underlying Token [RAI](https://kovan.etherscan.io/token/0x76b06a2f6df6f0514e7bec52a9afb3f603b477cd) at `0x76b06a2f6df6f0514e7bec52a9afb3f603b477cd`
+
+Deployed [Vault](https://kovan.etherscan.io/address/0x58a4cc1f3c268af914c7f23fb1c7510c3033cbca) ad `0x58a4cc1f3c268af914c7f23fb1c7510c3033cbca`
+
+Using our previously deployed vault as the underlying, deployed
+[Vault](https://kovan.etherscan.io/address/0xf4e6b1e4f4605c9a43bfa67ba30045ff2a6966a8) at `0xf4e6b1e4f4605c9a43bfa67ba30045ff2a6966a8`
+
+Deployed Strategy to Kovan running:
+
+```sh
+ETH_FROM=xxxx ETH_RPC_URL=xxxx ETH_GAS=xxxx dapp create src/IdleStrategy.sol:IdleStrategy <ETH_FROM> 0x76b06a2f6df6f0514e7bec52a9afb3f603b477cd --verify
+```
+
+Then verified with:
+
+```
+ETH_FROM=xxxx ETH_RPC_URL=xxxx ETH_GAS=xxxx dapp verify-contract ./src/IdleStrategy.sol:IdleStrategy <Deployed IdleStrategy Address> <ETH_FROM> 0x76b06a2f6df6f0514e7bec52a9afb3f603b477cd
+```
+
+
 ### Generate Pretty Visuals
 
 We use [surya](https://github.com/ConsenSys/surya) to create contract diagrams.
