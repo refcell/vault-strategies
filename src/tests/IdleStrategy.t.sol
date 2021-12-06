@@ -2,14 +2,17 @@
 pragma solidity ^0.8.6;
 
 import "ds-test/test.sol";
+import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 
 import "../IdleStrategy.sol";
 
 contract IdleStrategyTest is DSTest {
     IdleStrategy idle;
-
+    MockERC20 underlying;
     function setUp() public {
-        idle = new IdleStrategy();
+        underlying = new MockERC20("Mock Token", "TKN", 18);
+
+        idle = new IdleStrategy(underlying);
     }
 
     function testFail_basic_sanity() public {
