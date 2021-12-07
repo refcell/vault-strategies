@@ -16,7 +16,13 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     using FixedPointMathLib for uint256;
 
     /// @dev the cToken to mint for the underlying
-    CErc20 immutable CERC20;
+    CErc20 internal immutable CERC20;
+
+    /// @dev the underlying token
+    ERC20 internal immutable UNDERLYING;
+
+    /// @dev the erc20 base unit
+    uint256 internal immutable BASE_UNIT;
 
     constructor(
         ERC20 _UNDERLYING,
@@ -41,6 +47,26 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @dev Mints the underlying `amount` as a cToken and enters the Compound Market.
     /// @param amount The amount of cToken to mint.
     function allocate(uint256 amount) external requiresAuth {
+        // ** Approve cDai to use the underlying ** //
+        UNDERLYING.approve(address(CERC20), amount);
+
+        // ** Mint cToken for the underlying ** //
+        CERC20.mint(amount);
+
+        emit AllocatedUnderlying(msg.sender, amount);
+    }
+
+    /// @notice Emitted when the Strategy levers up using the CErc20 as collateral.
+    /// @param user The authorized user who triggered the lever.
+    /// @param amount The amount of underlying to lever borrow.
+    event LeverUp(address indexed user, uint256 amount);
+
+    /// @notice Leverages using the Comptroller.
+    /// @dev Mints the underlying `amount` as a cToken and enters the Compound Market.
+    /// @param amount The amount of cToken to mint.
+    function leverUp(uint256 amount) external requiresAuth {
+        // TODO: require CErc20.balanceOf(address(this)) has >= amount of CErc20
+
         // ** Approve cDai to use the underlying ** //
         UNDERLYING.approve(address(CERC20), amount);
 
@@ -74,14 +100,24 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         emit AllocatedUnderlying(msg.sender, amount);
     }
 
+    /// @notice Required Strategy function for CEther.
     function isCEther() external pure override returns (bool) {
         return false;
     }
 
+    /// @notice Visibility for the underlying token.
     function underlying() external view override returns (ERC20) {
         return UNDERLYING;
     }
 
+    /// @notice Visibility for the CErc20 (CToken).
+    function cerc20() external view override returns (CErc20) {
+        return CERC20;
+    }
+
+    /// @notice Mints VCLS in exchange for underlying.
+    /// @param amount The amount of underlying to mint VCLS for.
+    /// @return 0 on success.
     function mint(uint256 amount) external override returns (uint256) {
         _mint(msg.sender, amount.fdiv(exchangeRate(), BASE_UNIT));
 
@@ -90,6 +126,9 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         return 0;
     }
 
+    /// @notice Exchanges this token for the underlying.
+    /// @param amount The amount of underlying to redeem.
+    /// @return 0 on success.
     function redeemUnderlying(uint256 amount) external override returns (uint256) {
         _burn(msg.sender, amount.fdiv(exchangeRate(), BASE_UNIT));
 
@@ -98,18 +137,15 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         return 0;
     }
 
+    /// @notice Fetches the user's underlying balance.
+    /// @param user The user's address to check their balance for.
+    /// @return The user's underlying balance.
     function balanceOfUnderlying(address user) external view override returns (uint256) {
         return balanceOf[user].fmul(exchangeRate(), BASE_UNIT);
     }
 
-    /*///////////////////////////////////////////////////////////////
-                            INTERNAL LOGIC
-    //////////////////////////////////////////////////////////////*/
-
-    ERC20 internal immutable UNDERLYING;
-
-    uint256 internal immutable BASE_UNIT;
-
+    /// @notice Calculates the echange rate to the underlying.
+    /// @return The exchange rate from VCLS to the underlying.
     function exchangeRate() internal view returns (uint256) {
         uint256 cTokenSupply = totalSupply;
 
