@@ -16,22 +16,27 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
 
-    /// @dev the cToken to mint for the underlying
+    /// @notice The cToken to mint for the underlying.
     CErc20 internal immutable CERC20;
 
-    /// @dev the underlying token
+    /// @notice The underlying erc20.
     ERC20 internal immutable UNDERLYING;
 
-    /// @dev the erc20 base unit
+    /// @dev The erc20 base unit.
     uint256 internal immutable BASE_UNIT;
+
+    /// @notice The Comptroller we want to lever with.
+    Comptroller internal immutable COMPTROLLER;
 
     constructor(
         ERC20 _UNDERLYING,
         CErc20 _CERC20,
+        Comptroller _COMPTROLLER,
         Authority _authority
     ) Auth(msg.sender, _authority) {
         UNDERLYING = _UNDERLYING;
         CERC20 = _CERC20;
+        COMPTROLLER = _COMPTROLLER;
         BASE_UNIT = 10**_UNDERLYING.decimals();
     }
 
@@ -68,9 +73,11 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     function leverUp(uint256 amount) external requiresAuth {
         require(CERC20.balanceOf(address(this)) >= amount, "INSUFFICIENT_FUNDS");
 
-        // ** Enter Markets with the minted cToken ** //
-        //   address[] memory tokens = new address[](1);
-        //   tokens[0] = address(CERC20);
+        // ** Enter Markets with the minted CErc20 ** //
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(CERC20);
+        COMPTROLLER.enterMarkets(tokens);
+
         // TODO: somehow call ComptrollerKovan at 0xeA7ab3528efD614f4184d1D223c91993344e6A9e as proxy
         //   Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).enterMarkets(tokens);
         //   Comptroller(0xeA7ab3528efD614f4184d1D223c91993344e6A9e).enterMarkets(tokens);
@@ -90,7 +97,8 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         require(CERC20.balanceOf(address(this)) >= amount, "INSUFFICIENT_FUNDS");
 
         // ** Withdraw from the markets ** //
-        Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).exitMarket(address(CERC20));
+        // Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657)
+        COMPTROLLER.exitMarket(address(CERC20));
 
         emit AllocatedUnderlying(msg.sender, amount);
     }
