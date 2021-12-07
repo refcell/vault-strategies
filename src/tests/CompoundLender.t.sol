@@ -9,13 +9,14 @@ import {VaultFactory} from "vaults/VaultFactory.sol";
 
 import {Strategy} from "vaults/interfaces/Strategy.sol";
 import {CompoundLender} from "../CompoundLender.sol";
-
+import {CToken} from "../interfaces/compound/CToken.sol";
 
 contract CompoundLenderTest is DSTestPlus {
     CompoundLender strategy;
     MockERC20 underlying;
     VaultFactory vaultFactory;
     Vault vault;
+    CToken cToken;
 
     function setUp() public {
         underlying = new MockERC20("Mock Token", "TKN", 18);
@@ -29,7 +30,10 @@ contract CompoundLenderTest is DSTestPlus {
 
         vault.initialize();
 
-        strategy = new CompoundLender(underlying, Authority(address(0)));
+        // cDai
+        cToken = CToken(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
+
+        strategy = new CompoundLender(underlying, cToken, Authority(address(0)));
     }
 
     /*///////////////////////////////////////////////////////////////
