@@ -29,7 +29,7 @@ contract CompoundLenderTest is DSTestPlus {
 
         vault.initialize();
 
-        strategy = new CompoundLender(underlying);
+        strategy = new CompoundLender(underlying, Authority(address(0)));
     }
 
     /*///////////////////////////////////////////////////////////////

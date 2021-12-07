@@ -14,7 +14,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
 
-    constructor(ERC20 _UNDERLYING) Auth(Auth(msg.sender).owner(), Auth(msg.sender).authority()) {
+    constructor(ERC20 _UNDERLYING, Authority _authority) Auth(msg.sender, _authority) {
         UNDERLYING = _UNDERLYING;
 
         BASE_UNIT = 10**_UNDERLYING.decimals();
