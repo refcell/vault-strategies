@@ -7,6 +7,7 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {Auth} from "solmate/auth/Auth.sol";
 
 import {ERC20Strategy} from "./interfaces/Strategy.sol";
+import {IUniswapV2Router02} from "./interfaces/IUniswapV2Router02.sol";
 
 contract UniswapV2LP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20Strategy, Auth {
     using SafeTransferLib for ERC20;
@@ -14,7 +15,7 @@ contract UniswapV2LP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20St
 
     /// @dev UniswapV2Router02 for DAI<>RAI at a 3% fee
     /// @dev https://kovan.etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
-    UniswapV2Router02 router = IUniswapV2Router02(0x7a250d5630b4cf539739df2c5dacb4c659f2488d);
+    IUniswapV2Router02 router = IUniswapV2Router02(0x7a250d5630b4cf539739df2c5dacb4c659f2488d);
 
     constructor(ERC20 _UNDERLYING) Auth(Auth(msg.sender).owner(), Auth(msg.sender).authority()) {
         UNDERLYING = _UNDERLYING;
@@ -28,7 +29,7 @@ contract UniswapV2LP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20St
     //////////////////////////////////////////////////////////////*/
 
 
-    function allocate() external requireAuth {
+    function allocate() external requiresAuth {
         /*
             addLiquidity(
                 tokenA (address),
@@ -42,9 +43,14 @@ contract UniswapV2LP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20St
             )
         */
         router.addLiquidity(
-            UNDERLYING,
-            
-        )
+            UNDERLYING, // RAI
+            0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa, // DAI
+            0,
+            0,
+            0,
+            0,
+            address(this)
+        );
     }
 
     function isCEther() external pure override returns (bool) {

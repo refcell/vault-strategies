@@ -25,23 +25,23 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when the strategy allocates to Compound.
-    /// @param sender The authorized user who triggered the allocation.
+    /// @param user The authorized user who triggered the allocation.
     /// @param amount The amount of underlying to enter into the compound market.
     event AllocatedUnderlying(address indexed user, uint128 amount);
 
     /// @notice Allocates the amount into the Compound Market.
     /// @dev Mints the underlying `amount` as a cToken and enters the Compound Market.
     /// @param amount The amount of cToken to mint.
-    function allocate(uint256 amount) requireAuth {
+    function allocate(uint256 amount) external requiresAuth {
       // ** Approve cDai to use this DAI ** //
-      ERC20(0xf0d0eb522cfa50b716b3b1604c4f0fa6f04376ad).approve(0xf0d0eb522cfa50b716b3b1604c4f0fa6f04376ad, amount);
+      ERC20(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD).approve(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD, amount);
 
       // ** Mint cToken for the underlying ** //
-      CToken cToken = CToken(0xf0d0eb522cfa50b716b3b1604c4f0fa6f04376ad);
+      CToken cToken = CToken(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
       cToken.mint(amount);
 
       // ** Enter Markets with the minted cToken ** //
-      CTokens[] memory tokens = new CTokens[](1);
+      CToken[] memory tokens = new CToken[](1);
       tokens[0] = cToken;
       Comptroller(0x5eae89dc1c671724a672ff0630122ee834098657).enterMarkets(tokens);
 
@@ -49,20 +49,20 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     }
 
     /// @notice Emitted when the strategy removes liquidity from Compound.
-    /// @param sender The authorized user who triggered the allocation.
+    /// @param user The authorized user who triggered the allocation.
     /// @param amount The amount of underlying withdrawan.
     event WithdrawUnderlying(address indexed user, uint128 amount);
 
     /// @notice Withdraws the amount into the Compound Market.
     /// @param amount The amount of cToken to withdraw.
-    function withdraw(uint256 amount) requireAuth {
+    function withdraw(uint256 amount) external requiresAuth {
       // ** Withdraw from the markets ** //
-      CTokens[] memory tokens = new CTokens[](1);
-      tokens[0] = cToken;
+      CToken[] memory tokens = new CToken[](1);
+      tokens[0] = CToken(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
       Comptroller(0x5eae89dc1c671724a672ff0630122ee834098657).exitMarkets(tokens);
 
       // ** Redeem the underlying for the cToken ** //
-      CToken cToken = CToken(0xf0d0eb522cfa50b716b3b1604c4f0fa6f04376ad);
+      CToken cToken = CToken(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
       cToken.redeem(amount);
 
       emit AllocatedUnderlying(msg.sender, amount);

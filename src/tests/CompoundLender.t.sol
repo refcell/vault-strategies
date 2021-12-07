@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.6;
+pragma solidity 0.8.10;
 
-import "ds-test/test.sol";
+import {Authority} from "solmate/auth/Auth.sol";
 import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 import {Vault} from "vaults/Vault.sol";
+import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
 import {VaultFactory} from "vaults/VaultFactory.sol";
 
-import {CompountLender} from "../CompountLender.sol";
+import {Strategy} from "vaults/interfaces/Strategy.sol";
+import {CompoundLender} from "../CompoundLender.sol";
 
 
-contract CompountLenderTest is DSTest {
-    CompountLender strategy;
+contract CompoundLenderTest is DSTestPlus {
+    CompoundLender strategy;
     MockERC20 underlying;
     VaultFactory vaultFactory;
     Vault vault;
@@ -27,7 +29,7 @@ contract CompountLenderTest is DSTest {
 
         vault.initialize();
 
-        strategy = new CompountLender(underlying);
+        strategy = new CompoundLender(underlying);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -70,7 +72,7 @@ contract CompountLenderTest is DSTest {
     }
 
     /// @dev enter mock uniswap pool
-    function testProfitableUniswapPool() public {
+    function testProfitableCompoundMarkets() public {
         // ** Deposit underlying into vault ** //
         underlying.mint(address(this), 1.5e18);
         underlying.approve(address(vault), 1e18);
@@ -89,29 +91,25 @@ contract CompountLenderTest is DSTest {
         strategiesToHarvest[0] = strategy;
         vault.harvest(strategiesToHarvest);
 
-        uint256 startingTimestamp = block.timestamp;
-
         // ** Vault Sanity Checks ** //
-        assertEq(vault.lastHarvest(), startingTimestamp);
-        assertEq(vault.lastHarvestWindowStart(), startingTimestamp);
         assertEq(vault.totalStrategyHoldings(), 1.5e18);
         assertEq(vault.balanceOf(address(this)), 1e18);
         assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
 
         hevm.warp(block.timestamp + vault.harvestDelay());
 
+        // ** Withdraw from Compound ** //
+        strategy.withdraw(10e18);
+
+        // ** Mock interest by sending the strategy mula ** //
+        underlying.transfer(address(strategy), 0.5e18);
+
+        // ** Redeem the underlying from the vault ** //
         vault.redeem(1e18);
 
+        // ** Sanity Checks ** //
         assertEq(underlying.balanceOf(address(this)), 1428571428571428571);
-
-        assertEq(vault.exchangeRate(), 1428571428571428580);
         assertEq(vault.totalStrategyHoldings(), 70714285714285715);
-        assertEq(vault.totalFloat(), 714285714285714);
-        assertEq(vault.totalHoldings(), 71428571428571429);
-        assertEq(vault.balanceOf(address(this)), 0);
-        assertEq(vault.balanceOfUnderlying(address(this)), 0);
-        assertEq(vault.totalSupply(), 0.05e18);
-        assertEq(vault.balanceOf(address(vault)), 0.05e18);
         assertEq(vault.balanceOfUnderlying(address(vault)), 71428571428571429);
     }
 }

@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.6;
+pragma solidity 0.8.10;
 
-import "ds-test/test.sol";
+import {Authority} from "solmate/auth/Auth.sol";
+import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
 import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 import {Vault} from "vaults/Vault.sol";
 import {VaultFactory} from "vaults/VaultFactory.sol";
 
 import {UniswapV2LP} from "../UniswapV2LP.sol";
 
+import {Strategy} from "vaults/interfaces/Strategy.sol";
 
-contract UniswapV2LPTest is DSTest {
+
+contract UniswapV2LPTest is DSTestPlus {
     UniswapV2LP strategy;
     MockERC20 underlying;
     VaultFactory vaultFactory;
@@ -82,7 +85,7 @@ contract UniswapV2LPTest is DSTest {
         vault.pushToWithdrawalQueue(strategy);
 
         // ** Mock interest by sending underlying to the uniswap pool as a fee ** //
-        underlying.transfer(address(uniswapPool), 0.5e18)
+        underlying.transfer(address(0x0), 0.5e18);
 
         // ** Harvest the strategy ** //
         Strategy[] memory strategiesToHarvest = new Strategy[](1);
