@@ -13,7 +13,7 @@ import {Strategy} from "vaults/interfaces/Strategy.sol";
 
 
 contract UniswapV2LPTest is DSTestPlus {
-    Strategy strategy;
+    UniswapV2LP strategy;
     MockERC20 underlying;
     VaultFactory vaultFactory;
     Vault vault;
@@ -42,9 +42,9 @@ contract UniswapV2LPTest is DSTestPlus {
         underlying.approve(address(vault), 1e18);
         vault.deposit(1e18);
 
-        vault.trustStrategy(strategy);
+        vault.trustStrategy(Strategy(address(strategy)));
 
-        vault.depositIntoStrategy(strategy, 1e18);
+        vault.depositIntoStrategy(Strategy(address(strategy)), 1e18);
 
         assertEq(vault.exchangeRate(), 1e18);
         assertEq(vault.totalStrategyHoldings(), 1e18);
@@ -53,7 +53,7 @@ contract UniswapV2LPTest is DSTestPlus {
         assertEq(vault.balanceOf(address(this)), 1e18);
         assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
 
-        vault.withdrawFromStrategy(strategy, 0.5e18);
+        vault.withdrawFromStrategy(Strategy(address(strategy)), 0.5e18);
 
         assertEq(vault.exchangeRate(), 1e18);
         assertEq(vault.totalStrategyHoldings(), 0.5e18);
@@ -62,7 +62,7 @@ contract UniswapV2LPTest is DSTestPlus {
         assertEq(vault.balanceOf(address(this)), 1e18);
         assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
 
-        vault.withdrawFromStrategy(strategy, 0.5e18);
+        vault.withdrawFromStrategy(Strategy(address(strategy)), 0.5e18);
 
         assertEq(vault.exchangeRate(), 1e18);
         assertEq(vault.totalStrategyHoldings(), 0);
@@ -80,16 +80,16 @@ contract UniswapV2LPTest is DSTestPlus {
         vault.deposit(1e18);
 
         // ** Deposit underlying into strategy ** //
-        vault.trustStrategy(strategy);
-        vault.depositIntoStrategy(strategy, 1e18);
-        vault.pushToWithdrawalQueue(strategy);
+        vault.trustStrategy(Strategy(address(strategy)));
+        vault.depositIntoStrategy(Strategy(address(strategy)), 1e18);
+        vault.pushToWithdrawalQueue(Strategy(address(strategy)));
 
         // ** Mock interest by sending underlying to the uniswap pool as a fee ** //
         underlying.transfer(address(0x0), 0.5e18);
 
         // ** Harvest the strategy ** //
         Strategy[] memory strategiesToHarvest = new Strategy[](1);
-        strategiesToHarvest[0] = strategy;
+        strategiesToHarvest[0] = Strategy(address(strategy));
         vault.harvest(strategiesToHarvest);
 
         uint256 startingTimestamp = block.timestamp;

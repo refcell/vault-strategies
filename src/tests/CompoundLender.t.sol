@@ -41,9 +41,9 @@ contract CompoundLenderTest is DSTestPlus {
         underlying.approve(address(vault), 1e18);
         vault.deposit(1e18);
 
-        vault.trustStrategy(strategy);
+        vault.trustStrategy(Strategy(address(strategy)));
 
-        vault.depositIntoStrategy(strategy, 1e18);
+        vault.depositIntoStrategy(Strategy(address(strategy)), 1e18);
 
         assertEq(vault.exchangeRate(), 1e18);
         assertEq(vault.totalStrategyHoldings(), 1e18);
@@ -52,7 +52,7 @@ contract CompoundLenderTest is DSTestPlus {
         assertEq(vault.balanceOf(address(this)), 1e18);
         assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
 
-        vault.withdrawFromStrategy(strategy, 0.5e18);
+        vault.withdrawFromStrategy(Strategy(address(strategy)), 0.5e18);
 
         assertEq(vault.exchangeRate(), 1e18);
         assertEq(vault.totalStrategyHoldings(), 0.5e18);
@@ -61,7 +61,7 @@ contract CompoundLenderTest is DSTestPlus {
         assertEq(vault.balanceOf(address(this)), 1e18);
         assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
 
-        vault.withdrawFromStrategy(strategy, 0.5e18);
+        vault.withdrawFromStrategy(Strategy(address(strategy)), 0.5e18);
 
         assertEq(vault.exchangeRate(), 1e18);
         assertEq(vault.totalStrategyHoldings(), 0);
@@ -79,16 +79,16 @@ contract CompoundLenderTest is DSTestPlus {
         vault.deposit(1e18);
 
         // ** Deposit underlying into strategy ** //
-        vault.trustStrategy(strategy);
-        vault.depositIntoStrategy(strategy, 1e18);
-        vault.pushToWithdrawalQueue(strategy);
+        vault.trustStrategy(Strategy(address(strategy)));
+        vault.depositIntoStrategy(Strategy(address(strategy)), 1e18);
+        vault.pushToWithdrawalQueue(Strategy(address(strategy)));
 
         // ** Deposit into Compound ** //
         strategy.allocate(10e18);
 
         // ** Harvest the strategy ** //
         Strategy[] memory strategiesToHarvest = new Strategy[](1);
-        strategiesToHarvest[0] = strategy;
+        strategiesToHarvest[0] = Strategy(address(strategy));
         vault.harvest(strategiesToHarvest);
 
         // ** Vault Sanity Checks ** //

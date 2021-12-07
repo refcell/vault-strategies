@@ -42,15 +42,15 @@ contract UniswapV2LP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20St
                 deadline (uint256)
             )
         */
-        router.addLiquidity(
-            UNDERLYING, // RAI
-            0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa, // DAI
-            0,
-            0,
-            0,
-            0,
-            address(this)
-        );
+        // router.addLiquidity(
+        //     UNDERLYING, // RAI
+        //     0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa, // DAI
+        //     0,
+        //     0,
+        //     0,
+        //     0,
+        //     address(this)
+        // );
     }
 
     function isCEther() external pure override returns (bool) {
