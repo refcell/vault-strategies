@@ -113,6 +113,15 @@ dapp verify-contract src/CompoundLender.sol:CompoundLender
 --verify
 ```
 
+Deployed and Verified at [0x6fbaa770f82f7d5f510b99c357e85123b4ac5558](https://kovan.etherscan.io/address/0x6fbaa770f82f7d5f510b99c357e85123b4ac5558)
+
+Call the trustStrategy function on the Kovan Dai Vault at [0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a](https://kovan.etherscan.io/address/0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a).
+
+```bash
+seth send 0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a 'trustStrategy(address)' 0x6fbaa770f82f7d5f510b99c357e85123b4ac5558
+```
+
+
 ### Generate Pretty Visuals
 
 We use [surya](https://github.com/ConsenSys/surya) to create contract diagrams.
