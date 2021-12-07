@@ -111,7 +111,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     }
 
     /// @notice Visibility for the CErc20 (CToken).
-    function cerc20() external view override returns (CErc20) {
+    function cerc20() external view returns (CErc20) {
         return CERC20;
     }
 
