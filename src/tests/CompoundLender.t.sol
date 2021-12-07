@@ -2,7 +2,7 @@
 pragma solidity 0.8.10;
 
 import {Authority} from "solmate/auth/Auth.sol";
-import {ERC20} from "solmate/tokens/ERC20.sol";
+import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 import {Vault} from "vaults/Vault.sol";
 import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
 import {VaultFactory} from "vaults/VaultFactory.sol";
@@ -13,14 +13,13 @@ import {CErc20} from "../interfaces/compound/CErc20.sol";
 
 contract CompoundLenderTest is DSTestPlus {
     CompoundLender strategy;
-    ERC20 underlying;
+    MockERC20 underlying;
     VaultFactory vaultFactory;
     Vault vault;
     CErc20 cErc20;
 
     function setUp() public {
-        // DAI
-        underlying = new ERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
+        underlying = new MockERC20("Mock Token", "TKN", 18);
         vaultFactory = new VaultFactory(address(this), Authority(address(0)));
         vault = vaultFactory.deployVault(underlying);
 
