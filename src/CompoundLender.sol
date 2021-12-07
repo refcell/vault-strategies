@@ -7,6 +7,7 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
+// Slimmed Compound Interfaces
 import {ERC20Strategy} from "./interfaces/Strategy.sol";
 import {CErc20} from "./interfaces/compound/CErc20.sol";
 import {Comptroller} from "./interfaces/compound/Comptroller.sol";
@@ -35,16 +36,16 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     }
 
     /*///////////////////////////////////////////////////////////////
-                             STRATEGY LOGIC
+                            CUSTOM STRATEGY LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Emitted when the strategy allocates to Compound.
+    /// @notice Emitted when the strategy mints CErc20 using the underlying.
     /// @param user The authorized user who triggered the allocation.
-    /// @param amount The amount of underlying to enter into the compound market.
+    /// @param amount The amount of underlying to mint.
     event AllocatedUnderlying(address indexed user, uint256 amount);
 
-    /// @notice Allocates the amount into the Compound Market.
-    /// @dev Mints the underlying `amount` as a cToken and enters the Compound Market.
+    /// @notice Allocates the underlying to Compound.
+    /// @dev Mints the underlying `amount` as a cToken.
     /// @param amount The amount of cToken to mint.
     function allocate(uint256 amount) external requiresAuth {
         // ** Approve cDai to use the underlying ** //
@@ -59,19 +60,13 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @notice Emitted when the Strategy levers up using the CErc20 as collateral.
     /// @param user The authorized user who triggered the lever.
     /// @param amount The amount of underlying to lever borrow.
-    event LeverUp(address indexed user, uint256 amount);
+    event LeveredUp(address indexed user, uint256 amount);
 
     /// @notice Leverages using the Comptroller.
-    /// @dev Mints the underlying `amount` as a cToken and enters the Compound Market.
-    /// @param amount The amount of cToken to mint.
+    /// @dev Enters the Compound Market.
+    /// @param amount The amount of cToken to lever.
     function leverUp(uint256 amount) external requiresAuth {
-        // TODO: require CErc20.balanceOf(address(this)) has >= amount of CErc20
-
-        // ** Approve cDai to use the underlying ** //
-        UNDERLYING.approve(address(CERC20), amount);
-
-        // ** Mint cToken for the underlying ** //
-        CERC20.mint(amount);
+        require(CERC20.balanceOf(address(this)) >= amount, "INSUFFICIENT_FUNDS");
 
         // ** Enter Markets with the minted cToken ** //
         //   address[] memory tokens = new address[](1);
@@ -80,25 +75,43 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         //   Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).enterMarkets(tokens);
         //   Comptroller(0xeA7ab3528efD614f4184d1D223c91993344e6A9e).enterMarkets(tokens);
 
+        emit LeveredUp(msg.sender, amount);
+    }
+
+    /// @notice Emitted when the Strategy delevers the CErc20 collateral.
+    /// @param user The authorized user who triggered the lever.
+    /// @param amount The amount of underlying to delever.
+    event Delevered(address indexed user, uint256 amount);
+
+    /// @notice Delever the CErc20 collateral.
+    /// @dev Exits the Compound Market.
+    /// @param amount The amount of cToken to delever.
+    function delever(uint256 amount) external requiresAuth {
+        require(CERC20.balanceOf(address(this)) >= amount, "INSUFFICIENT_FUNDS");
+
+        // ** Withdraw from the markets ** //
+        Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).exitMarket(address(CERC20));
+
         emit AllocatedUnderlying(msg.sender, amount);
     }
 
-    /// @notice Emitted when the strategy removes liquidity from Compound.
+    /// @notice Emitted when the strategy redeems the CErc20 for the underlying.
     /// @param user The authorized user who triggered the allocation.
-    /// @param amount The amount of underlying withdrawan.
-    event WithdrawUnderlying(address indexed user, uint256 amount);
+    /// @param amount The amount of underlying redeemed.
+    event Deallocate(address indexed user, uint256 amount);
 
     /// @notice Withdraws the amount into the Compound Market.
     /// @param amount The amount of cToken to withdraw.
-    function withdraw(uint256 amount) external requiresAuth {
-        // ** Withdraw from the markets ** //
-        //   Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).exitMarket(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
-
+    function deallocate(uint256 amount) external requiresAuth {
         // ** Redeem the underlying for the cToken ** //
         CERC20.redeem(amount);
 
         emit AllocatedUnderlying(msg.sender, amount);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                        BASE STRATEGY LOGIC
+    //////////////////////////////////////////////////////////////*/  
 
     /// @notice Required Strategy function for CEther.
     function isCEther() external pure override returns (bool) {
