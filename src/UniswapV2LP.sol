@@ -14,8 +14,8 @@ contract UniswapV2LP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20St
     using FixedPointMathLib for uint256;
 
     /// @dev UniswapV2Router02 for DAI<>RAI at a 3% fee
-    /// @dev https://kovan.etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
-    IUniswapV2Router02 router = IUniswapV2Router02(0x7a250d5630b4cf539739df2c5dacb4c659f2488d);
+    /// @dev https://kovan.etherscan.io/address/0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+    IUniswapV2Router02 router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
 
     constructor(ERC20 _UNDERLYING) Auth(Auth(msg.sender).owner(), Auth(msg.sender).authority()) {
         UNDERLYING = _UNDERLYING;
