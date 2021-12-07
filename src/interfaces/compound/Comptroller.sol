@@ -35,6 +35,9 @@ interface Comptroller {
     function enforceWhitelist() external view returns (bool);
     function whitelist(address account) external view returns (bool);
 
+    function enterMarkets(address[] calldata cTokens) external returns (uint[] memory);
+    function exitMarket(address cToken) external returns (uint);
+
     function _setWhitelistEnforcement(bool enforce) external returns (uint);
     function _setWhitelistStatuses(address[] calldata _suppliers, bool[] calldata statuses) external returns (uint);
 }

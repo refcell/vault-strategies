@@ -41,9 +41,9 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
       cToken.mint(amount);
 
       // ** Enter Markets with the minted cToken ** //
-      CToken[] memory tokens = new CToken[](1);
-      tokens[0] = cToken;
-      Comptroller(0x5eae89dc1c671724a672ff0630122ee834098657).enterMarkets(tokens);
+      address[] memory tokens = new address[](1);
+      tokens[0] = 0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD;
+      Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).enterMarkets(tokens);
 
       emit AllocatedUnderlying(msg.sender, amount);
     }
@@ -57,9 +57,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @param amount The amount of cToken to withdraw.
     function withdraw(uint256 amount) external requiresAuth {
       // ** Withdraw from the markets ** //
-      CToken[] memory tokens = new CToken[](1);
-      tokens[0] = CToken(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
-      Comptroller(0x5eae89dc1c671724a672ff0630122ee834098657).exitMarkets(tokens);
+      Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).exitMarket(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
 
       // ** Redeem the underlying for the cToken ** //
       CToken cToken = CToken(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
