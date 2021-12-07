@@ -44,6 +44,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
       // ** Enter Markets with the minted cToken ** //
       address[] memory tokens = new address[](1);
       tokens[0] = 0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD;
+      // TODO: somehow call ComptrollerKovan at 0xeA7ab3528efD614f4184d1D223c91993344e6A9e as proxy
       Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).enterMarkets(tokens);
 
       emit AllocatedUnderlying(msg.sender, amount);
