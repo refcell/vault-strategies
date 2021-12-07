@@ -8,7 +8,7 @@ import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 import {ERC20Strategy} from "./interfaces/Strategy.sol";
-import {CToken} from "./interfaces/compound/CToken.sol";
+import {CErc20} from "./interfaces/compound/CErc20.sol";
 import {Comptroller} from "./interfaces/compound/Comptroller.sol";
 
 contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18), ERC20Strategy, Auth {
@@ -16,15 +16,15 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     using FixedPointMathLib for uint256;
 
     /// @dev the cToken to mint for the underlying
-    CToken immutable CTOKEN;
+    CErc20 immutable CERC20;
 
     constructor(
         ERC20 _UNDERLYING,
-        CToken _CTOKEN,
+        CErc20 _CERC20,
         Authority _authority
     ) Auth(msg.sender, _authority) {
         UNDERLYING = _UNDERLYING;
-        CTOKEN = _CTOKEN;
+        CERC20 = _CERC20;
         BASE_UNIT = 10**_UNDERLYING.decimals();
     }
 
@@ -42,17 +42,17 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @param amount The amount of cToken to mint.
     function allocate(uint256 amount) external requiresAuth {
       // ** Approve cDai to use the underlying ** //
-      UNDERLYING.approve(address(CTOKEN), amount);
+      UNDERLYING.approve(address(CERC20), amount);
 
       // ** Mint cToken for the underlying ** //
-      CTOKEN.mint(amount);
+      CERC20.mint(amount);
 
       // ** Enter Markets with the minted cToken ** //
-      address[] memory tokens = new address[](1);
-      tokens[0] = address(CTOKEN);
+    //   address[] memory tokens = new address[](1);
+    //   tokens[0] = address(CERC20);
       // TODO: somehow call ComptrollerKovan at 0xeA7ab3528efD614f4184d1D223c91993344e6A9e as proxy
     //   Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).enterMarkets(tokens);
-      Comptroller(0xeA7ab3528efD614f4184d1D223c91993344e6A9e).enterMarkets(tokens);
+    //   Comptroller(0xeA7ab3528efD614f4184d1D223c91993344e6A9e).enterMarkets(tokens);
 
       emit AllocatedUnderlying(msg.sender, amount);
     }
@@ -66,10 +66,10 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @param amount The amount of cToken to withdraw.
     function withdraw(uint256 amount) external requiresAuth {
       // ** Withdraw from the markets ** //
-      Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).exitMarket(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
+    //   Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).exitMarket(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
 
       // ** Redeem the underlying for the cToken ** //
-      CTOKEN.redeem(amount);
+      CERC20.redeem(amount);
 
       emit AllocatedUnderlying(msg.sender, amount);
     }

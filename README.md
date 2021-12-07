@@ -87,6 +87,19 @@ dapp verify-contract ./src/IdleStrategy.sol:IdleStrategy <Deployed IdleStrategy 
 ```
 
 
+#### Compound Lender
+
+Deployed Vault for Dai on Kovan at [0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a](https://kovan.etherscan.io/address/0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a).
+
+Kovan Authority at [0x082220f9c151192542C547f56305c78C1f032513](https://kovan.etherscan.io/address/0x082220f9c151192542C547f56305c78C1f032513)
+
+```bash
+dapp create src/CompoundLender.sol:CompoundLender 0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa // Dai
+0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD // cDai
+0x082220f9c151192542C547f56305c78C1f032513
+--verify
+```
+
 ### Generate Pretty Visuals
 
 We use [surya](https://github.com/ConsenSys/surya) to create contract diagrams.

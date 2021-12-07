@@ -31,9 +31,6 @@ interface CToken {
     function exchangeRateStored() external view returns (uint);
     function getCash() external view returns (uint);
 
-    // TODO :: ???
-    function mint(uint mintAmount) external returns (uint);
-
     function redeem(uint redeemTokens) external returns (uint);
     function redeemUnderlying(uint redeemAmount) external returns (uint);
 }

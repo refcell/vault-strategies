@@ -9,6 +9,7 @@ import "./CToken.sol";
  * @author Compound
  */
 interface CErc20 is CToken {
+    function mint(uint mintAmount) external returns (uint);
     function underlying() external view returns (address);
     function liquidateBorrow(address borrower, uint repayAmount, CToken cTokenCollateral) external returns (uint);
 }

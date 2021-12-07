@@ -2,24 +2,25 @@
 pragma solidity 0.8.10;
 
 import {Authority} from "solmate/auth/Auth.sol";
-import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
+import {ERC20} from "solmate/tokens/ERC20.sol";
 import {Vault} from "vaults/Vault.sol";
 import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
 import {VaultFactory} from "vaults/VaultFactory.sol";
 
 import {Strategy} from "vaults/interfaces/Strategy.sol";
 import {CompoundLender} from "../CompoundLender.sol";
-import {CToken} from "../interfaces/compound/CToken.sol";
+import {CErc20} from "../interfaces/compound/CErc20.sol";
 
 contract CompoundLenderTest is DSTestPlus {
     CompoundLender strategy;
-    MockERC20 underlying;
+    ERC20 underlying;
     VaultFactory vaultFactory;
     Vault vault;
-    CToken cToken;
+    CErc20 cErc20;
 
     function setUp() public {
-        underlying = new MockERC20("Mock Token", "TKN", 18);
+        // DAI
+        underlying = new ERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
         vaultFactory = new VaultFactory(address(this), Authority(address(0)));
         vault = vaultFactory.deployVault(underlying);
 
@@ -31,9 +32,9 @@ contract CompoundLenderTest is DSTestPlus {
         vault.initialize();
 
         // cDai
-        cToken = CToken(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
+        cErc20 = CErc20(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
 
-        strategy = new CompoundLender(underlying, cToken, Authority(address(0)));
+        strategy = new CompoundLender(underlying, cErc20, Authority(address(0)));
     }
 
     /*///////////////////////////////////////////////////////////////
