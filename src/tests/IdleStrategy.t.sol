@@ -9,6 +9,7 @@ import "../IdleStrategy.sol";
 contract IdleStrategyTest is DSTest {
     IdleStrategy idle;
     MockERC20 underlying;
+
     function setUp() public {
         underlying = new MockERC20("Mock Token", "TKN", 18);
 

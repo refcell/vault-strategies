@@ -23,11 +23,9 @@ contract UniswapV2LP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20St
         BASE_UNIT = 10**_UNDERLYING.decimals();
     }
 
-
     /*///////////////////////////////////////////////////////////////
                              STRATEGY LOGIC
     //////////////////////////////////////////////////////////////*/
-
 
     function allocate() external requiresAuth {
         // router.mint(
@@ -73,7 +71,6 @@ contract UniswapV2LP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20St
         return balanceOf[user].fmul(exchangeRate(), BASE_UNIT);
     }
 
-  
     /*///////////////////////////////////////////////////////////////
                             INTERNAL LOGIC
     //////////////////////////////////////////////////////////////*/

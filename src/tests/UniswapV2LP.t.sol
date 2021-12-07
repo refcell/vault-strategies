@@ -11,7 +11,6 @@ import {UniswapV2LP} from "../UniswapV2LP.sol";
 
 import {Strategy} from "vaults/interfaces/Strategy.sol";
 
-
 contract UniswapV2LPTest is DSTestPlus {
     UniswapV2LP strategy;
     MockERC20 underlying;
