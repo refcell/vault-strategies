@@ -30,7 +30,7 @@ contract UniswapV2LPTest is DSTestPlus {
 
         vault.initialize();
 
-        strategy = new UniswapV2LP(underlying);
+        strategy = new UniswapV2LP(underlying, Authority(address(0)));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ contract UniswapV2LPTest is DSTestPlus {
     }
 
     /// @dev enter mock uniswap pool
-    function testProfitableUniswapPool() public {
+    function _testProfitableUniswapPool() public {
         // ** Deposit underlying into vault ** //
         underlying.mint(address(this), 1.5e18);
         underlying.approve(address(vault), 1e18);

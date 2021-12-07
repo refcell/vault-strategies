@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.10;
 
+import {Authority} from "solmate/auth/Auth.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
@@ -17,7 +18,7 @@ contract UniswapV2LP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20St
     /// @dev https://kovan.etherscan.io/address/0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
     IUniswapV2Router02 router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
 
-    constructor(ERC20 _UNDERLYING) Auth(Auth(msg.sender).owner(), Auth(msg.sender).authority()) {
+    constructor(ERC20 _UNDERLYING, Authority _authority) Auth(msg.sender, _authority) {
         UNDERLYING = _UNDERLYING;
 
         BASE_UNIT = 10**_UNDERLYING.decimals();
