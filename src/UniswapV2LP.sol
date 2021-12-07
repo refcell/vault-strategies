@@ -4,22 +4,48 @@ pragma solidity 0.8.10;
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+import {Auth} from "solmate/auth/Auth.sol";
 
 import {ERC20Strategy} from "./interfaces/Strategy.sol";
 
-contract UniswapLP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20Strategy {
+contract UniswapV2LP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20Strategy, Auth {
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
 
-    constructor(ERC20 _UNDERLYING) {
+    /// @dev UniswapV2Router02 for DAI<>RAI at a 3% fee
+    /// @dev https://kovan.etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+    UniswapV2Router02 router = IUniswapV2Router02(0x7a250d5630b4cf539739df2c5dacb4c659f2488d);
+
+    constructor(ERC20 _UNDERLYING) Auth(Auth(msg.sender).owner(), Auth(msg.sender).authority()) {
         UNDERLYING = _UNDERLYING;
 
         BASE_UNIT = 10**_UNDERLYING.decimals();
     }
 
+
     /*///////////////////////////////////////////////////////////////
                              STRATEGY LOGIC
     //////////////////////////////////////////////////////////////*/
+
+
+    function allocate() external requireAuth {
+        /*
+            addLiquidity(
+                tokenA (address),
+                tokenB (address),
+                amountADesired (uint256),
+                amountBDesired (uint256),
+                amountAMin (uint256),
+                amountBMin (uint256),
+                to (address),
+                deadline (uint256)
+            )
+        */
+        router.addLiquidity(
+            UNDERLYING,
+            
+        )
+    }
 
     function isCEther() external pure override returns (bool) {
         return false;
@@ -49,9 +75,6 @@ contract UniswapLP is ERC20("Vaults Uniswap LP Strategy", "VULP", 18), ERC20Stra
         return balanceOf[user].fmul(exchangeRate(), BASE_UNIT);
     }
 
-
-    // TODO: increaseLiquidity into UniswapV2Router02 at 0x7a250d5630b4cf539739df2c5dacb4c659f2488d
-    // TODO: dai/rai 3% tick
   
     /*///////////////////////////////////////////////////////////////
                             INTERNAL LOGIC
