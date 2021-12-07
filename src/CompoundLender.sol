@@ -27,7 +27,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @notice Emitted when the strategy allocates to Compound.
     /// @param user The authorized user who triggered the allocation.
     /// @param amount The amount of underlying to enter into the compound market.
-    event AllocatedUnderlying(address indexed user, uint128 amount);
+    event AllocatedUnderlying(address indexed user, uint256 amount);
 
     /// @notice Allocates the amount into the Compound Market.
     /// @dev Mints the underlying `amount` as a cToken and enters the Compound Market.
@@ -51,7 +51,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @notice Emitted when the strategy removes liquidity from Compound.
     /// @param user The authorized user who triggered the allocation.
     /// @param amount The amount of underlying withdrawan.
-    event WithdrawUnderlying(address indexed user, uint128 amount);
+    event WithdrawUnderlying(address indexed user, uint256 amount);
 
     /// @notice Withdraws the amount into the Compound Market.
     /// @param amount The amount of cToken to withdraw.
