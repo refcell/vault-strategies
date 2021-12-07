@@ -2,7 +2,9 @@
 
 <div align="center">
 
-[![Tests](https://github.com/abigger87/vault-strategies/actions/workflows/tests.yml/badge.svg)](https://github.com/abigger87/vault-strategies/actions/workflows/tests.yml) [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE.md)
+[![Tests](https://github.com/abigger87/vault-strategies/actions/workflows/tests.yml/badge.svg)](https://github.com/abigger87/vault-strategies/actions/workflows/tests.yml)
+[![Lints](https://github.com/abigger87/vault-strategies/actions/workflows/lints.yml/badge.svg)](https://github.com/abigger87/vault-strategies/actions/workflows/lints.yml)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE.md)
 
 </div>
 
