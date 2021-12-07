@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.10;
 
+import {Auth} from "solmate/auth/Auth.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 import {ERC20Strategy} from "./interfaces/Strategy.sol";
+import {CToken} from "./interfaces/compound/CToken.sol";
+import {Comptroller} from "./interfaces/compound/Comptroller.sol";
 
-contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18), ERC20Strategy {
+contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18), ERC20Strategy, Auth {
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
 
-    constructor(ERC20 _UNDERLYING) {
+    constructor(ERC20 _UNDERLYING) Auth(Auth(msg.sender).owner(), Auth(msg.sender).authority()) {
         UNDERLYING = _UNDERLYING;
 
         BASE_UNIT = 10**_UNDERLYING.decimals();
@@ -20,6 +23,27 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /*///////////////////////////////////////////////////////////////
                              STRATEGY LOGIC
     //////////////////////////////////////////////////////////////*/
+
+    /// @notice Emitted when the strategy allocates to Compound.
+    /// @param sender The authorized user who triggered the allocation.
+    /// @param amount The amount of underlying to enter into the compound market.
+    event AllocatedUnderlying(address indexed user, uint128 amount);
+
+    function allocate(uint256 amount) requireAuth {
+      // ** Approve cDai to use this DAI ** //
+      ERC20(0xf0d0eb522cfa50b716b3b1604c4f0fa6f04376ad).approve(0xf0d0eb522cfa50b716b3b1604c4f0fa6f04376ad, amount);
+
+      // ** Mint cToken for the underlying ** //
+      CToken cToken = CToken(0xf0d0eb522cfa50b716b3b1604c4f0fa6f04376ad);
+      cToken.mint(amount);
+
+      // ** Enter Markets with the minted cToken ** //
+      CTokens[] memory tokens = new CTokens[](1);
+      tokens[0] = cToken;
+      Comptroller(0x5eae89dc1c671724a672ff0630122ee834098657).enterMarkets(tokens);
+
+      emit AllocatedUnderlying(msg.sender, amount);
+    }
 
     function isCEther() external pure override returns (bool) {
         return false;
