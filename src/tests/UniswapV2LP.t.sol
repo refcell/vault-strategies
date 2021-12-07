@@ -6,11 +6,11 @@ import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 import {Vault} from "vaults/Vault.sol";
 import {VaultFactory} from "vaults/VaultFactory.sol";
 
-import {UniswapLP} from "../UniswapLP.sol";
+import {UniswapV2LP} from "../UniswapV2LP.sol";
 
 
-contract UniswapLPTest is DSTest {
-    UniswapLP strategy;
+contract UniswapV2LPTest is DSTest {
+    UniswapV2LP strategy;
     MockERC20 underlying;
     VaultFactory vaultFactory;
     Vault vault;
@@ -27,7 +27,7 @@ contract UniswapLPTest is DSTest {
 
         vault.initialize();
 
-        strategy = new UniswapLP(underlying);
+        strategy = new UniswapV2LP(underlying);
     }
 
     /*///////////////////////////////////////////////////////////////
