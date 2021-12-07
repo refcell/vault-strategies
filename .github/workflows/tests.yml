@@ -16,13 +16,11 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
-              with:
-                  submodules: recursive
             - uses: actions/setup-node@v2
             - uses: cachix/install-nix-action@v13
             - uses: cachix/cachix-action@v10
               with:
-                  name: dapp
+                name: dapp
 
             - name: Install dependencies
               id: make-dependencies
@@ -30,8 +28,10 @@ jobs:
 
             - name: Build the contracts
               id: make-build
-              run: nix-shell --run 'make build'
+              run: nix-shell --run 'dapp check-snapshot'
 
-            - name: Deploy and run checks
-              id: test-deploy
-              run: nix-shell --run './scripts/test-deploy.sh'
+            - name: Run tests
+              run: nix-shell --run 'dapp test'
+              env:
+                # Only fuzz deeply if we're pushing to main or this is a PR to main:
+                DEEP_FUZZ: ${{ github.ref == 'refs/heads/main' || github.base_ref == 'main' }}
