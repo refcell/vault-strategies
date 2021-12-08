@@ -20,6 +20,8 @@ interface Comptroller {
 
     function markets(address cToken) external view returns (bool, uint);
 
+    function claimComp(address[] calldata holders, address[] calldata cTokens, bool borrowers, bool suppliers) external;
+    
     function getAssetsIn(address account) external view returns (CToken[] memory);
     function checkMembership(address account, CToken cToken) external view returns (bool);
     

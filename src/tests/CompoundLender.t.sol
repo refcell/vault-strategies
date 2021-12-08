@@ -10,6 +10,8 @@ import {VaultFactory} from "vaults/VaultFactory.sol";
 import {Strategy} from "vaults/interfaces/Strategy.sol";
 import {CompoundLender} from "../CompoundLender.sol";
 import {CErc20} from "../interfaces/compound/CErc20.sol";
+import {Comptroller} from "../interfaces/compound/Comptroller.sol";
+import {CToken} from "../interfaces/compound/CToken.sol";
 
 contract CompoundLenderTest is DSTestPlus {
     CompoundLender strategy;
@@ -17,6 +19,8 @@ contract CompoundLenderTest is DSTestPlus {
     VaultFactory vaultFactory;
     Vault vault;
     CErc20 cErc20;
+    Comptroller troll;
+    CToken comp;
 
     function setUp() public {
         underlying = new MockERC20("Mock Token", "TKN", 18);
@@ -33,7 +37,13 @@ contract CompoundLenderTest is DSTestPlus {
         // cDai
         cErc20 = CErc20(0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD);
 
-        strategy = new CompoundLender(underlying, cErc20, Authority(address(0)));
+        // cDai comptroller
+        troll = Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657);
+
+        // COMP gov token
+        comp = CToken(0x61460874a7196d6a22D1eE4922473664b3E95270);
+
+        strategy = new CompoundLender(underlying, cErc20, comp, troll, Authority(address(0)));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -103,7 +113,7 @@ contract CompoundLenderTest is DSTestPlus {
         hevm.warp(block.timestamp + vault.harvestDelay());
 
         // ** Withdraw from Compound ** //
-        strategy.withdraw(10e18);
+        strategy.deallocate(10e18);
 
         // ** Mock interest by sending the strategy mula ** //
         underlying.transfer(address(strategy), 0.5e18);
