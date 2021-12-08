@@ -16,32 +16,59 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
 
-    /// @notice The cToken to mint for the underlying.
+    /// @dev The cToken to mint for the underlying.
     CErc20 internal immutable CERC20;
 
-    /// @notice The underlying erc20.
-    ERC20 internal immutable UNDERLYING;
+    /// @dev COMP token for LP reward harvesting.
+    CToken internal immutable COMP;
 
-    /// @dev The erc20 base unit.
+    /// @dev The Comptroller we want to lever with.
+    Comptroller internal immutable TROLL;
+
+    /// @dev The underlying erc20.
+    ERC20 internal immutable UNDERLYING;
     uint256 internal immutable BASE_UNIT;
 
-    /// @notice The Comptroller we want to lever with.
-    Comptroller internal immutable COMPTROLLER;
+    /// @dev The CErc20 max collateral factor [wad]
+    uint256 public cf = 0;
+
+    /// @dev The maximum target collateral factor [wad]
+    uint256 public maxf = 0;
+
+    /// @dev The minimum target collateral factor [wad]
+    uint256 public minf = 0;
+
+    /// @dev The minimum underlying value to continue iterating.
+    uint256 constant DUST = 1e6;
 
     constructor(
         ERC20 _UNDERLYING,
         CErc20 _CERC20,
-        Comptroller _COMPTROLLER,
+        CToken _COMP,
+        Comptroller _TROLL,
         Authority _authority
     ) Auth(msg.sender, _authority) {
         UNDERLYING = _UNDERLYING;
         CERC20 = _CERC20;
-        COMPTROLLER = _COMPTROLLER;
+        COMP = _COMP;
+        TROLL = _TROLL;
         BASE_UNIT = 10**_UNDERLYING.decimals();
+
+        // Allow the CToken to spend max uint of underlying.
+        // Practically allows unlimited mints and redemptions.
+        UNDERLYING.approve(address(CERC20), uint(-1));
+
+        // Enter the Comptroller markets to enable CToken as collateral.
+        // Docs: https://compound.finance/docs/comptroller#enter-markets
+        address[] memory ctokens = new address[](1);
+        ctokens[0] = address(_CERC20);
+        uint256[] memory errors = new uint[](1);
+        errors = TROLL.enterMarkets(ctokens);
+        require(errors[0] == 0, "ENTER_MARKETS_ERRORED");
     }
 
     /*///////////////////////////////////////////////////////////////
-                            CUSTOM STRATEGY LOGIC
+                    STRATEGY ALLOCATE/DEALLOCATE LOGIC
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when the strategy mints CErc20 using the underlying.
@@ -62,6 +89,24 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         emit AllocatedUnderlying(msg.sender, amount);
     }
 
+    /// @notice Emitted when the strategy redeems the CErc20 for the underlying.
+    /// @param user The authorized user who triggered the allocation.
+    /// @param amount The amount of underlying redeemed.
+    event Deallocate(address indexed user, uint256 amount);
+
+    /// @notice Withdraws the amount into the Compound Market.
+    /// @param amount The amount of cToken to withdraw.
+    function deallocate(uint256 amount) external requiresAuth {
+        // ** Redeem the underlying for the cToken ** //
+        CERC20.redeem(amount);
+
+        emit AllocatedUnderlying(msg.sender, amount);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    STRATEGY LEVER/DELEVER LOGIC
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice Emitted when the Strategy levers up using the CErc20 as collateral.
     /// @param user The authorized user who triggered the lever.
     /// @param amount The amount of underlying to lever borrow.
@@ -76,7 +121,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         // ** Enter Markets with the minted CErc20 ** //
         address[] memory tokens = new address[](1);
         tokens[0] = address(CERC20);
-        COMPTROLLER.enterMarkets(tokens);
+        TROLL.enterMarkets(tokens);
 
         // TODO: somehow call ComptrollerKovan at 0xeA7ab3528efD614f4184d1D223c91993344e6A9e as proxy
         //   Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).enterMarkets(tokens);
@@ -98,28 +143,55 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
 
         // ** Withdraw from the markets ** //
         // Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657)
-        COMPTROLLER.exitMarket(address(CERC20));
+        TROLL.exitMarket(address(CERC20));
 
         emit AllocatedUnderlying(msg.sender, amount);
     }
 
-    /// @notice Emitted when the strategy redeems the CErc20 for the underlying.
+
+    /*///////////////////////////////////////////////////////////////
+                    STRATEGY COLLATERAL FACTOR LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Emitted when the collateral factors are tuned.
+    /// @dev Index all fields due to dense argument distribution.
     /// @param user The authorized user who triggered the allocation.
-    /// @param amount The amount of underlying redeemed.
-    event Deallocate(address indexed user, uint256 amount);
+    /// @param _cf The updated collateral factor.
+    /// @param _maxf The updated maximum collateral factor.
+    /// @param _minf The updated minimum collateral factor.
+    event TunedCollateralFactors(address indexed user, uint256 indexed _cf, uint256 indexed _maxf, uint256 indexed _minf);
 
-    /// @notice Withdraws the amount into the Compound Market.
-    /// @param amount The amount of cToken to withdraw.
-    function deallocate(uint256 amount) external requiresAuth {
-        // ** Redeem the underlying for the cToken ** //
-        CERC20.redeem(amount);
+    /// @notice Tunes the maintained collateral factors.
+    /// @param _cf The new Collateral Factor.
+    /// @param _maxf The new maximum Collateral Factor.
+    /// @param _minf The new minimum Collateral Factor.
+    function tune(uint256 _cf, uint256 maxf_, uint256 minf_) external requiresAuth {
+        cf = _cf;
+        maxf = _maxf;
+        minf = _minf;
 
-        emit AllocatedUnderlying(msg.sender, amount);
+        emit TunedCollateralFactors(msg.sender, cf, maxf, minf);
     }
 
     /*///////////////////////////////////////////////////////////////
-                        BASE STRATEGY LOGIC
+                        FUNCTIONAL STRATEGY LOGIC
     //////////////////////////////////////////////////////////////*/  
+
+    /// @dev Harvest COMP rewards.
+    function harvest() internal requiresAuth {
+        address[] memory ctokens = new address[](1);
+        address[] memory users = new address[](1);
+        ctokens[0] = address(CERC20);
+        users[0] = address(this);
+        TROLL.claimComp(users, ctokens, true, true);
+    }
+
+    /// @notice Calculates the Net Asset Value of the Strategy.
+    /// @return Net Asset Value
+    function nav() public returns (uint256) {
+        uint256 _nav = UNDERLYING.balanceOf(address(this)) + CERC20.balanceOfUnderlying(address(this)) - CERC20.borrowBalanceCurrent(address(this));
+        return _nav;
+    }
 
     /// @notice Required Strategy function for CEther.
     function isCEther() external pure override returns (bool) {

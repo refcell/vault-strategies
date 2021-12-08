@@ -12,7 +12,8 @@
 
 ### Credits
 
--   [t11s](https://twitter.com/transmissions11), [Jet Jadeja](https://twitter.com/JetJadeja), and the whole [Rari Capital](https://twitter.com/raricapital) team for their exceptional work.
+-   [t11s](https://twitter.com/transmissions11), [Jet Jadeja](https://twitter.com/JetJadeja), and the whole [Rari Capital](https://twitter.com/raricapital) team for their work on vaults.
+- Rain's [crop](https://github.com/rainbreak/crop) Compound Levered USDC Strategy.
 -   [Georgios Konstantopoulos](https://github.com/gakonst) for the amazing [dapptools-template](https://github.com/gakonst/dapptools-template) resource.
 
 ## Strategies
