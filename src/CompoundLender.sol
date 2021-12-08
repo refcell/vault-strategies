@@ -56,13 +56,13 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
 
         // Allow the CToken to spend max uint of underlying.
         // Practically allows unlimited mints and redemptions.
-        UNDERLYING.approve(address(CERC20), uint(-1));
+        UNDERLYING.approve(address(CERC20), uint256(-1));
 
         // Enter the Comptroller markets to enable CToken as collateral.
         // Docs: https://compound.finance/docs/comptroller#enter-markets
         address[] memory ctokens = new address[](1);
         ctokens[0] = address(_CERC20);
-        uint256[] memory errors = new uint[](1);
+        uint256[] memory errors = new uint256[](1);
         errors = TROLL.enterMarkets(ctokens);
         require(errors[0] == 0, "ENTER_MARKETS_ERRORED");
     }
@@ -149,7 +149,6 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         emit AllocatedUnderlying(msg.sender, amount);
     }
 
-
     /*///////////////////////////////////////////////////////////////
                     STRATEGY COLLATERAL FACTOR LOGIC
     //////////////////////////////////////////////////////////////*/
@@ -160,13 +159,22 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @param _cf The updated collateral factor.
     /// @param _maxf The updated maximum collateral factor.
     /// @param _minf The updated minimum collateral factor.
-    event TunedCollateralFactors(address indexed user, uint256 indexed _cf, uint256 indexed _maxf, uint256 indexed _minf);
+    event TunedCollateralFactors(
+        address indexed user,
+        uint256 indexed _cf,
+        uint256 indexed _maxf,
+        uint256 indexed _minf
+    );
 
     /// @notice Tunes the maintained collateral factors.
     /// @param _cf The new Collateral Factor.
     /// @param _maxf The new maximum Collateral Factor.
     /// @param _minf The new minimum Collateral Factor.
-    function tune(uint256 _cf, uint256 maxf_, uint256 minf_) external requiresAuth {
+    function tune(
+        uint256 _cf,
+        uint256 maxf_,
+        uint256 minf_
+    ) external requiresAuth {
         cf = _cf;
         maxf = _maxf;
         minf = _minf;
@@ -176,7 +184,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
 
     /*///////////////////////////////////////////////////////////////
                         FUNCTIONAL STRATEGY LOGIC
-    //////////////////////////////////////////////////////////////*/  
+    //////////////////////////////////////////////////////////////*/
 
     /// @dev Harvest COMP rewards.
     function harvest() internal requiresAuth {
@@ -190,7 +198,9 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @notice Calculates the Net Asset Value of the Strategy.
     /// @return Net Asset Value
     function nav() public returns (uint256) {
-        uint256 _nav = UNDERLYING.balanceOf(address(this)) + CERC20.balanceOfUnderlying(address(this)) - CERC20.borrowBalanceCurrent(address(this));
+        uint256 _nav = UNDERLYING.balanceOf(address(this)) +
+            CERC20.balanceOfUnderlying(address(this)) -
+            CERC20.borrowBalanceCurrent(address(this));
         return _nav;
     }
 
