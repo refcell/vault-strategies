@@ -86,6 +86,8 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         // ** Mint cToken for the underlying ** //
         CERC20.mint(amount);
 
+        // TODO: leverUp
+
         emit AllocatedUnderlying(msg.sender, amount);
     }
 
@@ -97,6 +99,8 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @notice Withdraws the amount into the Compound Market.
     /// @param amount The amount of cToken to withdraw.
     function deallocate(uint256 amount) external requiresAuth {
+        // TODO: delever if necessary
+
         // ** Redeem the underlying for the cToken ** //
         CERC20.redeem(amount);
 
@@ -118,10 +122,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     function leverUp(uint256 amount) external requiresAuth {
         require(CERC20.balanceOf(address(this)) >= amount, "INSUFFICIENT_FUNDS");
 
-        // ** Enter Markets with the minted CErc20 ** //
-        address[] memory tokens = new address[](1);
-        tokens[0] = address(CERC20);
-        TROLL.enterMarkets(tokens);
+        // NOTE: Comptroller markets are entered in the constructor.
 
         // TODO: somehow call ComptrollerKovan at 0xeA7ab3528efD614f4184d1D223c91993344e6A9e as proxy
         //   Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).enterMarkets(tokens);
@@ -216,6 +217,8 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
 
         UNDERLYING.safeTransferFrom(msg.sender, address(this), amount);
 
+        // TODO: allocate
+
         return 0;
     }
 
@@ -224,6 +227,8 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @return 0 on success.
     function redeemUnderlying(uint256 amount) external override returns (uint256) {
         _burn(msg.sender, amount.fdiv(exchangeRate(), BASE_UNIT));
+
+        // TODO: deallocate
 
         UNDERLYING.safeTransfer(msg.sender, amount);
 
