@@ -41,6 +41,9 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @dev The minimum underlying value to continue iterating.
     uint256 constant DUST = 1e6;
 
+    // CONSTANTS
+    uint256 constant WAD = 10 ** 18;
+
     constructor(
         ERC20 _UNDERLYING,
         CErc20 _CERC20,
@@ -124,9 +127,38 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
 
         // NOTE: Comptroller markets are entered in the constructor.
 
-        // TODO: somehow call ComptrollerKovan at 0xeA7ab3528efD614f4184d1D223c91993344e6A9e as proxy
-        //   Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657).enterMarkets(tokens);
-        //   Comptroller(0xeA7ab3528efD614f4184d1D223c91993344e6A9e).enterMarkets(tokens);
+        // TODO: Calculate the borrow amount using the amount
+        uint256 borrow_ = amount * cf; // amount of underlying to borrow
+        uint256 loops_ = 5; // # rounds of the borrow+mint circuit
+        
+        require(CERC20.accrueInterest() == 0, "ACCRUED_INTEREST");
+
+        uint256 gems = UNDERLYING.balanceOf(address(this));
+        if (gems > 0) {
+            require(CERC20.mint(gems) == 0, "UNSUCCESSFUL_CTOKEN_MINT");
+        }
+
+        for (uint256 i = 0; i < loops_; i++) {
+            uint256 s = CERC20.balanceOfUnderlying(address(this));
+            uint256 b = CERC20.borrowBalanceStored(address(this));
+            // math overflow if
+            //   - b / (s + L) > cf  [insufficient loan to unwind]
+            //   - minf > 1e18       [bad configuration]
+            //   - minf < u          [can't wind over minf]
+            uint256 x1 = ((s * cf) / WAD) - b;
+            uint256 x2 = (((((s - amount) * minf) / WAD) - b) * WAD) / (1e18 - minf);
+            uint256 max_borrow = min(x1, x2);
+            if (max_borrow < DUST) break;
+            require(CERC20.borrow(max_borrow) == 0, "FAILED_BORROW");
+            require(CERC20.mint(max_borrow) == 0, "FAILED_MINT");
+        }
+        if (borrow_ > 0) {
+            require(CERC20.borrow(borrow_) == 0);
+            require(CERC20.mint(borrow_) == 0);
+        }
+
+        uint256 u = (CERC20.borrowBalanceStored(address(this)) * WAD) / CERC20.balanceOfUnderlying(address(this)));
+        require(u < maxf, "FAILED_LEVER_UP");
 
         emit LeveredUp(msg.sender, amount);
     }
@@ -142,11 +174,66 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     function delever(uint256 amount) external requiresAuth {
         require(CERC20.balanceOf(address(this)) >= amount, "INSUFFICIENT_FUNDS");
 
-        // ** Withdraw from the markets ** //
-        // Comptroller(0x5eAe89DC1C671724A672ff0630122ee834098657)
-        TROLL.exitMarket(address(CERC20));
+
+        //      |   |   |   |   |   |      //
+        //    -------------------------    //
+        // ------------------------------- //
+        // --- TODO ------------- TODO --- //
+        // ---------------  -------------- //
+        // --------------    ------------- //
+        // --------------    ------------- //
+        // ------------------------------- //
+        // ------------------------------- //
+        // ---------              -------- //
+        // ---------     TODO     -------- //
+        // ---------              -------- //
+        // ------------------------------- //
+        //    -------------------------    //
+        //              -----              //
 
         emit AllocatedUnderlying(msg.sender, amount);
+    }
+
+
+    /// @notice Calculate number blocks until liquidation.
+    /// @dev Ignores compound effects, so estimate diverges w.r.t time.
+    /// @dev Adapted from https://github.com/Grandthrax/YearnV2-Generic-Lev-Comp-Farm
+    function getblocksUntilLiquidation() public view returns (uint256) {
+        (, uint256 cfMantissa, ) = TROLL.markets(address(CERC20));
+        /*
+            (
+                (deposits * collateralThreshold - borrows)
+                /
+                (borrows * borrowrate - deposits * collateralThreshold * interestrate)
+            )
+        */
+        (uint256 deposits, uint256 borrows) = getCurrentPosition();
+
+        uint256 borrrowRate = CERC20.borrowRatePerBlock();
+        uint256 supplyRate = CERC20.supplyRatePerBlock();
+
+        uint256 collateralisedDeposit1 = deposits.mul(cfMantissa).div(1e18);
+        uint256 collateralisedDeposit = collateralisedDeposit1;
+
+        uint256 denom1 = borrows.mul(borrrowRate);
+        uint256 denom2 = collateralisedDeposit.mul(supplyRate);
+
+        if (denom2 >= denom1) {
+            return uint256(-1);
+        } else {
+            uint256 numer = collateralisedDeposit.sub(borrows);
+            uint256 denom = denom1 - denom2;
+            return numer.mul(1e18).div(denom); // minus 1 for this block
+        }
+    }
+
+    /// @notice Calculate the current CToken position.
+    /// @dev Fetches balances since last CToken interaction, accrued interest between is absent.
+    /// @return Total deposits and borrows.
+    function getCurrentPosition() public view returns (uint256 deposits, uint256 borrows) {
+        (, uint256 ctokenBalance, uint256 borrowBalance, uint256 exchangeRate) = CERC20.getAccountSnapshot(address(this));
+        borrows = borrowBalance;
+        deposits = ctokenBalance.mul(exchangeRate).div(1e18);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -260,5 +347,10 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         if (cTokenSupply == 0) return BASE_UNIT;
 
         return UNDERLYING.balanceOf(address(this)).fdiv(cTokenSupply, BASE_UNIT);
+    }
+
+    /// @dev Helper to find the min of {x,y}
+    function min(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        return x <= y ? x : y;
     }
 }
