@@ -117,7 +117,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @notice Emitted when the Strategy levers up using the CErc20 as collateral.
     /// @param user The authorized user who triggered the lever.
     /// @param amount The amount of underlying to lever borrow.
-    event LeveredUp(address indexed user, uint256 amount);
+    event LeveredUp(address indexed user, uint256 indexed amount);
 
     /// @notice Leverages using the Comptroller.
     /// @dev Enters the Compound Market.
@@ -166,7 +166,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @notice Emitted when the Strategy delevers the CErc20 collateral.
     /// @param user The authorized user who triggered the lever.
     /// @param amount The amount of underlying to delever.
-    event Delevered(address indexed user, uint256 amount);
+    event Delevered(address indexed user, uint256 indexed amount);
 
     /// @notice Delever the CErc20 collateral.
     /// @dev Exits the Compound Market.
@@ -191,7 +191,50 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         //    -------------------------    //
         //              -----              //
 
-        emit AllocatedUnderlying(msg.sender, amount);
+        require(CERC20.accrueInterest() == 0, "ACCRUED_INTEREST");
+
+        uint256 u = (CERC20.borrowBalanceStored(address(this)) * WAD) / CERC20.balanceOfUnderlying(address(this)));
+
+        require(CERC20.mint(UNDERLYING.balanceOf(address(this))) == 0, "FAILED_MINT");
+
+        for (uint256 i = 0; i < loops_; i++) {
+            uint256 s = CERC20.balanceOfUnderlying(address(this));
+            uint256 b = CERC20.borrowBalanceStored(address(this));
+            // math overflow if
+            //   - [insufficient loan to unwind]
+            //   - [insufficient loan for exit]
+            //   - [bad configuration]
+            uint256 x1 = wdiv(sub(wmul(s, cf), b), cf);
+            uint256 x2 = wdiv(this.zsub(add(b, wmul(exit_, maxf)),
+                               wmul(sub(s, loan_), maxf)),
+                           sub(1e18, maxf));
+            uint256 max_repay = min(x1, x2);
+            if (max_repay < DUST) break;
+            require(CERC20.redeemUnderlying(max_repay) == 0, "FAILED_UNDERLYING_REDEEM");
+            require(CERC20.repayBorrow(max_repay) == 0, "FAILED_BORROW_REPAY");
+        }
+        if (repay_ > 0) {
+            require(CERC20.redeemUnderlying(repay_) == 0, "FAILED_UNDERLYING_REDEEM");
+            require(CERC20.repayBorrow(repay_) == 0, "FAILED_BORROW_REPAY");
+        }
+        if (exit_ > 0 || loan_ > 0) {
+            require(CERC20.redeemUnderlying(add(exit_, loan_)) == 0, "FAILED_UNDERLYING_REDEEM");
+        }
+        if (loan_ > 0) {
+            require(gem.transfer(msg.sender, loan_), "FAILED_TRANSFER");
+        }
+        if (exit_ > 0) {
+            exit(exit_);
+        }
+
+        uint256 u_ = wdiv(cgem.borrowBalanceStored(address(this)),
+                       cgem.balanceOfUnderlying(address(this)));
+        bool ramping = u  <  minf && u_ > u && u_ < maxf;
+        bool damping = u  >  maxf && u_ < u && u_ > minf;
+        bool tamping = u_ >= minf && u_ <= maxf;
+        require(ramping || damping || tamping, "bad-unwind");
+
+        emit Delevered(msg.sender, amount);
     }
 
 
