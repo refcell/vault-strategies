@@ -43,7 +43,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     uint256 constant DUST = 1e6;
 
     // CONSTANTS
-    uint256 constant WAD = 10 ** 18;
+    uint256 constant WAD = 10**18;
 
     constructor(
         ERC20 _UNDERLYING,
@@ -131,7 +131,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         // TODO: Calculate the borrow amount using the amount
         uint256 borrow_ = amount * cf; // amount of underlying to borrow
         uint256 loops_ = 5; // # rounds of the borrow+mint circuit
-        
+
         require(CERC20.accrueInterest() == 0, "ACCRUED_INTEREST");
 
         uint256 gems = UNDERLYING.balanceOf(address(this));
@@ -175,7 +175,6 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     function delever(uint256 amount) external requiresAuth {
         require(CERC20.balanceOf(address(this)) >= amount, "INSUFFICIENT_FUNDS");
 
-
         //      |   |   |   |   |   |      //
         //    -------------------------    //
         // ------------------------------- //
@@ -212,9 +211,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
             //   - [insufficient loan for exit]
             //   - [bad configuration]
             uint256 x1 = (((s * cf) / WAD - b) * WAD) / cf;
-            uint256 x2 = (this.zsub((b + ((exit_ * maxf) / WAD)),
-                               ((s - loan_) * maxf) / WAD) * WAD) /
-                           (1e18 - maxf);
+            uint256 x2 = (this.zsub((b + ((exit_ * maxf) / WAD)), ((s - loan_) * maxf) / WAD) * WAD) / (1e18 - maxf);
             uint256 max_repay = min(x1, x2);
             if (max_repay < DUST) break;
             require(CERC20.redeemUnderlying(max_repay) == 0, "FAILED_UNDERLYING_REDEEM");
@@ -235,16 +232,14 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
             // exit(exit_);
         }
 
-        uint256 u_ = (CERC20.borrowBalanceStored(address(this)) * WAD) /
-                       CERC20.balanceOfUnderlying(address(this));
-        bool ramping = u  <  minf && u_ > u && u_ < maxf;
-        bool damping = u  >  maxf && u_ < u && u_ > minf;
+        uint256 u_ = (CERC20.borrowBalanceStored(address(this)) * WAD) / CERC20.balanceOfUnderlying(address(this));
+        bool ramping = u < minf && u_ > u && u_ < maxf;
+        bool damping = u > maxf && u_ < u && u_ > minf;
         bool tamping = u_ >= minf && u_ <= maxf;
         require(ramping || damping || tamping, "DELEVER_FAILED");
 
         emit Delevered(msg.sender, amount);
     }
-
 
     /// @notice Calculate number blocks until liquidation.
     /// @dev Ignores compound effects, so estimate diverges w.r.t time.
@@ -298,12 +293,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @param _cf The updated collateral factor.
     /// @param _maxf The updated maximum collateral factor.
     /// @param _minf The updated minimum collateral factor.
-    event TunedCollateralFactors(
-        address indexed user,
-        uint256 _cf,
-        uint256 indexed _maxf,
-        uint256 indexed _minf
-    );
+    event TunedCollateralFactors(address indexed user, uint256 _cf, uint256 indexed _maxf, uint256 indexed _minf);
 
     /// @notice Tunes the maintained collateral factors.
     /// @param _cf The new Collateral Factor.
@@ -407,7 +397,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     }
 
     /// @dev Helper to calculate the zsub of x,y
-    function zsub(uint x, uint y) public pure returns (uint z) {
+    function zsub(uint256 x, uint256 y) public pure returns (uint256 z) {
         return x - min(x, y);
     }
 }

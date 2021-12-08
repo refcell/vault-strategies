@@ -142,6 +142,30 @@ Deposit from the Vault into the Strategy:
 seth send 0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a 'depositIntoStrategy(address,uint256)' 0x8c8cfd425982ae12df541c4a9ac3a95ad344e548 10000000000000000000
 ```
 
+Mint cDai with the dai holdings by calling `strategy.allocate`:
+
+```bash
+seth send 0x8c8cfd425982ae12df541c4a9ac3a95ad344e548 'allocate(uint256)' 10000000000000000000
+```
+
+Get strategy balance of the underlying:
+
+```bash
+seth call 0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa 'balanceOf(address)' 0x8c8cfd425982ae12df541c4a9ac3a95ad344e548
+```
+
+Get strategy balance of the CToken:
+
+```bash
+seth call 0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD 'balanceOf(address)' 0x8c8cfd425982ae12df541c4a9ac3a95ad344e548
+```
+
+Get the supply rate of cDai:
+
+```bash
+seth call 0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD 'supplyRatePerBlock()'
+```
+
 Previous Versions:
 - 0x6fbaa770f82f7d5f510b99c357e85123b4ac5558
 
