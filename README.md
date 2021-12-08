@@ -101,6 +101,8 @@ Deployed `CompoundLender`:
 ```bash
 dapp create src/CompoundLender.sol:CompoundLender 0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa // Dai
 0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD // cDai
+0x61460874a7196d6a22D1eE4922473664b3E95270 // COMP
+0x5eAe89DC1C671724A672ff0630122ee834098657 // Comptroller
 0x082220f9c151192542C547f56305c78C1f032513 // Authority
 --verify
 ```
@@ -109,19 +111,66 @@ Verified:
 
 ```bash
 dapp verify-contract src/CompoundLender.sol:CompoundLender
-0x6fbaa770f82f7d5f510b99c357e85123b4ac5558 // deployed CompoundLender address
+0x8c8cfd425982ae12df541c4a9ac3a95ad344e548 // deployed CompoundLender address
 0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa // Dai
 0xF0d0EB522cfa50B716B3b1604C4F0fA6f04376AD // cDai
+0x61460874a7196d6a22D1eE4922473664b3E95270 // COMP
+0x5eAe89DC1C671724A672ff0630122ee834098657 // Comptroller
 0x082220f9c151192542C547f56305c78C1f032513 // Authority
 --verify
 ```
 
-Deployed and Verified at [0x6fbaa770f82f7d5f510b99c357e85123b4ac5558](https://kovan.etherscan.io/address/0x6fbaa770f82f7d5f510b99c357e85123b4ac5558)
+Deployed and Verified at [0x8c8cfd425982ae12df541c4a9ac3a95ad344e548](https://kovan.etherscan.io/address/0x8c8cfd425982ae12df541c4a9ac3a95ad344e548)
+
+Call the trustStrategy function on the Kovan Dai Vault at [0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a](https://kovan.etherscan.io/address/0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a).
+
+Trust the strategy from the DAI Vault:
+
+```bash
+seth send 0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a 'trustStrategy(address)' 0x8c8cfd425982ae12df541c4a9ac3a95ad344e548
+```
+
+Deposit into the Vault:
+
+```bash
+seth send 0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a 'deposit(uint256)' 10000000000000000000
+```
+
+Deposit from the Vault into the Strategy:
+
+```bash
+seth send 0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a 'depositIntoStrategy(address,uint256)' 0x8c8cfd425982ae12df541c4a9ac3a95ad344e548 10000000000000000000
+```
+
+Previous Versions:
+- 0x6fbaa770f82f7d5f510b99c357e85123b4ac5558
+
+
+#### Idle Strategy
+
+Deployed Vault for Dai on Kovan at [0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a](https://kovan.etherscan.io/address/0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a).
+
+Kovan Authority at [0x082220f9c151192542C547f56305c78C1f032513](https://kovan.etherscan.io/address/0x082220f9c151192542C547f56305c78C1f032513)
+
+Deployed `IdleStrategy` with Dai as the underlying:
+
+```bash
+dapp create src/IdleStrategy.sol:IdleStrategy 0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa 
+--verify
+```
+
+Verified with Dai underlying and deployed address:
+
+```bash
+dapp verify-contract src/IdleStrategy.sol:IdleStrategy 0x9Cf345b0C01F58ff82F8dF3a1aa4d4594605e965 0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa --verify
+```
+
+Deployed and Verified at [0x9Cf345b0C01F58ff82F8dF3a1aa4d4594605e965](https://kovan.etherscan.io/address/0x9Cf345b0C01F58ff82F8dF3a1aa4d4594605e965)
 
 Call the trustStrategy function on the Kovan Dai Vault at [0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a](https://kovan.etherscan.io/address/0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a).
 
 ```bash
-seth send 0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a 'trustStrategy(address)' 0x6fbaa770f82f7d5f510b99c357e85123b4ac5558
+seth send 0xeD23CA589e7d0e714F70b6C5816d87aeDaed3f5a 'trustStrategy(address)' 0x9Cf345b0C01F58ff82F8dF3a1aa4d4594605e965
 ```
 
 

@@ -8,6 +8,7 @@ import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 // Slimmed Compound Interfaces
+import {CToken} from "./interfaces/compound/CToken.sol";
 import {ERC20Strategy} from "./interfaces/Strategy.sol";
 import {CErc20} from "./interfaces/compound/CErc20.sol";
 import {Comptroller} from "./interfaces/compound/Comptroller.sol";
@@ -59,7 +60,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
 
         // Allow the CToken to spend max uint of underlying.
         // Practically allows unlimited mints and redemptions.
-        UNDERLYING.approve(address(CERC20), uint256(-1));
+        UNDERLYING.approve(address(CERC20), type(uint256).max);
 
         // Enter the Comptroller markets to enable CToken as collateral.
         // Docs: https://compound.finance/docs/comptroller#enter-markets
@@ -157,7 +158,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
             require(CERC20.mint(borrow_) == 0);
         }
 
-        uint256 u = (CERC20.borrowBalanceStored(address(this)) * WAD) / CERC20.balanceOfUnderlying(address(this)));
+        uint256 u = (CERC20.borrowBalanceStored(address(this)) * WAD) / CERC20.balanceOfUnderlying(address(this));
         require(u < maxf, "FAILED_LEVER_UP");
 
         emit LeveredUp(msg.sender, amount);
@@ -191,9 +192,15 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         //    -------------------------    //
         //              -----              //
 
+        // TODO: Calculate the repay amount using the amount
+        uint256 repay_ = amount * cf; // amount of underlying to repay
+        uint256 loops_ = 5; // # rounds of the borrow+mint circuit
+        uint256 exit_ = 10; // how much underlying to remove following unwind
+        uint256 loan_ = 0; // we lend the contract nothing for the tx
+
         require(CERC20.accrueInterest() == 0, "ACCRUED_INTEREST");
 
-        uint256 u = (CERC20.borrowBalanceStored(address(this)) * WAD) / CERC20.balanceOfUnderlying(address(this)));
+        uint256 u = (CERC20.borrowBalanceStored(address(this)) * WAD) / CERC20.balanceOfUnderlying(address(this));
 
         require(CERC20.mint(UNDERLYING.balanceOf(address(this))) == 0, "FAILED_MINT");
 
@@ -204,10 +211,10 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
             //   - [insufficient loan to unwind]
             //   - [insufficient loan for exit]
             //   - [bad configuration]
-            uint256 x1 = wdiv(sub(wmul(s, cf), b), cf);
-            uint256 x2 = wdiv(this.zsub(add(b, wmul(exit_, maxf)),
-                               wmul(sub(s, loan_), maxf)),
-                           sub(1e18, maxf));
+            uint256 x1 = (((s * cf) / WAD - b) * WAD) / cf;
+            uint256 x2 = (this.zsub((b + ((exit_ * maxf) / WAD)),
+                               ((s - loan_) * maxf) / WAD) * WAD) /
+                           (1e18 - maxf);
             uint256 max_repay = min(x1, x2);
             if (max_repay < DUST) break;
             require(CERC20.redeemUnderlying(max_repay) == 0, "FAILED_UNDERLYING_REDEEM");
@@ -218,21 +225,22 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
             require(CERC20.repayBorrow(repay_) == 0, "FAILED_BORROW_REPAY");
         }
         if (exit_ > 0 || loan_ > 0) {
-            require(CERC20.redeemUnderlying(add(exit_, loan_)) == 0, "FAILED_UNDERLYING_REDEEM");
+            require(CERC20.redeemUnderlying(exit_ + loan_) == 0, "FAILED_UNDERLYING_REDEEM");
         }
         if (loan_ > 0) {
-            require(gem.transfer(msg.sender, loan_), "FAILED_TRANSFER");
+            require(UNDERLYING.transfer(msg.sender, loan_), "FAILED_TRANSFER");
         }
         if (exit_ > 0) {
-            exit(exit_);
+            // TODO: exit?
+            // exit(exit_);
         }
 
-        uint256 u_ = wdiv(cgem.borrowBalanceStored(address(this)),
-                       cgem.balanceOfUnderlying(address(this)));
+        uint256 u_ = (CERC20.borrowBalanceStored(address(this)) * WAD) /
+                       CERC20.balanceOfUnderlying(address(this));
         bool ramping = u  <  minf && u_ > u && u_ < maxf;
         bool damping = u  >  maxf && u_ < u && u_ > minf;
         bool tamping = u_ >= minf && u_ <= maxf;
-        require(ramping || damping || tamping, "bad-unwind");
+        require(ramping || damping || tamping, "DELEVER_FAILED");
 
         emit Delevered(msg.sender, amount);
     }
@@ -242,7 +250,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @dev Ignores compound effects, so estimate diverges w.r.t time.
     /// @dev Adapted from https://github.com/Grandthrax/YearnV2-Generic-Lev-Comp-Farm
     function getblocksUntilLiquidation() public view returns (uint256) {
-        (, uint256 cfMantissa, ) = TROLL.markets(address(CERC20));
+        (, uint256 cfMantissa) = TROLL.markets(address(CERC20));
         /*
             (
                 (deposits * collateralThreshold - borrows)
@@ -255,28 +263,29 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
         uint256 borrrowRate = CERC20.borrowRatePerBlock();
         uint256 supplyRate = CERC20.supplyRatePerBlock();
 
-        uint256 collateralisedDeposit1 = deposits.mul(cfMantissa).div(1e18);
+        uint256 collateralisedDeposit1 = (deposits * cfMantissa) / 1e18;
         uint256 collateralisedDeposit = collateralisedDeposit1;
 
-        uint256 denom1 = borrows.mul(borrrowRate);
-        uint256 denom2 = collateralisedDeposit.mul(supplyRate);
+        uint256 denom1 = borrows * borrrowRate;
+        uint256 denom2 = collateralisedDeposit * supplyRate;
 
         if (denom2 >= denom1) {
-            return uint256(-1);
+            return type(uint256).max;
         } else {
-            uint256 numer = collateralisedDeposit.sub(borrows);
+            uint256 numer = collateralisedDeposit - borrows;
             uint256 denom = denom1 - denom2;
-            return numer.mul(1e18).div(denom); // minus 1 for this block
+            return (numer * 1e18) / denom; // minus 1 for this block
         }
     }
 
     /// @notice Calculate the current CToken position.
     /// @dev Fetches balances since last CToken interaction, accrued interest between is absent.
-    /// @return Total deposits and borrows.
+    /// @return deposits The total amount of deposits.
+    /// @return borrows The total amount of borrows.
     function getCurrentPosition() public view returns (uint256 deposits, uint256 borrows) {
-        (, uint256 ctokenBalance, uint256 borrowBalance, uint256 exchangeRate) = CERC20.getAccountSnapshot(address(this));
+        (, uint256 ctokenBalance, uint256 borrowBalance, uint256 er) = CERC20.getAccountSnapshot(address(this));
         borrows = borrowBalance;
-        deposits = ctokenBalance.mul(exchangeRate).div(1e18);
+        deposits = (ctokenBalance * er) / 1e18;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -291,7 +300,7 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @param _minf The updated minimum collateral factor.
     event TunedCollateralFactors(
         address indexed user,
-        uint256 indexed _cf,
+        uint256 _cf,
         uint256 indexed _maxf,
         uint256 indexed _minf
     );
@@ -302,8 +311,8 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @param _minf The new minimum Collateral Factor.
     function tune(
         uint256 _cf,
-        uint256 maxf_,
-        uint256 minf_
+        uint256 _maxf,
+        uint256 _minf
     ) external requiresAuth {
         cf = _cf;
         maxf = _maxf;
@@ -395,5 +404,10 @@ contract CompoundLender is ERC20("Vaults Compound Lending Strategy", "VCLS", 18)
     /// @dev Helper to find the min of {x,y}
     function min(uint256 x, uint256 y) internal pure returns (uint256 z) {
         return x <= y ? x : y;
+    }
+
+    /// @dev Helper to calculate the zsub of x,y
+    function zsub(uint x, uint y) public pure returns (uint z) {
+        return x - min(x, y);
     }
 }
